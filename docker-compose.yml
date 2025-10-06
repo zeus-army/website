@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: zeus-army-db
+    environment:
+      POSTGRES_DB: zeus_army
+      POSTGRES_USER: zeus_admin
+      POSTGRES_PASSWORD: zeus_thunder_2024
+    ports:
+      - "5432:5432"
+    volumes:
+      - zeus_db_data:/var/lib/postgresql/data
+      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  backend:
+    build: ./backend
+    container_name: zeus-army-backend
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://zeus_admin:zeus_thunder_2024@postgres:5432/zeus_army
+      JWT_SECRET: zeus_army_secret_key_2024
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev
+
+volumes:
+  zeus_db_data:

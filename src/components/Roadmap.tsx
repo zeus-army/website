@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 const RoadmapSection = styled.section`
   padding: 5rem 2rem;
-  background: rgba(26, 26, 26, 0.5);
+  background: linear-gradient(135deg, rgba(255, 229, 92, 0.05), rgba(74, 144, 226, 0.05));
   position: relative;
   overflow: hidden;
 `;
@@ -81,10 +81,10 @@ const TimelineContent = styled.div<{ $align: 'left' | 'right' }>`
 `;
 
 const TimelineNode = styled.div`
-  width: 60px;
-  height: 60px;
-  background: var(--color-background);
-  border: 3px solid var(--color-primary);
+  width: 80px;
+  height: 80px;
+  background: var(--color-card);
+  border: 4px solid var(--color-primary);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -93,7 +93,8 @@ const TimelineNode = styled.div`
   left: 50%;
   transform: translateX(-50%);
   z-index: 1;
-  font-size: 1.5rem;
+  font-size: 2rem;
+  box-shadow: 0 0 20px rgba(75, 183, 73, 0.4);
   
   @media (max-width: 768px) {
     left: 30px;
@@ -101,11 +102,12 @@ const TimelineNode = styled.div`
 `;
 
 const Phase = styled.h3`
-  color: var(--color-primary);
+  color: var(--color-secondary);
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
+  font-family: var(--font-display);
 `;
 
 const PhaseTitle = styled.h4`
@@ -135,47 +137,47 @@ const PhaseItems = styled.ul`
 
 const roadmapData = [
   {
-    phase: 'Fase 1',
-    title: 'El Despertar',
-    icon: '🌅',
+    phase: 'Phase 1',
+    title: 'The Awakening',
+    icon: '🐶',
     items: [
-      'Lanzamiento de la Zeus Army',
-      'Creación de canales de comunicación',
-      'Primeros 100 miembros élite',
-      'Establecimiento de valores y cultura'
+      'Zeus Army Launch - Woof!',
+      'Community Pack Formation',
+      'First 1000 Diamond Paws',
+      'Establish the Dog House Rules'
     ]
   },
   {
-    phase: 'Fase 2',
-    title: 'La Expansión',
-    icon: '🚀',
+    phase: 'Phase 2', 
+    title: 'Fetch the Moon',
+    icon: '🌙',
     items: [
-      'Campañas de marketing viral',
-      'Partnerships estratégicos',
-      'Desarrollo del Leaderboard',
-      'Eventos exclusivos para holders'
+      'Viral Meme Campaigns',
+      'Strategic Partnerships',
+      'Leaderboard of Good Boys',
+      'Exclusive Treats for Holders'
     ]
   },
   {
-    phase: 'Fase 3',
-    title: 'El Dominio',
-    icon: '👑',
+    phase: 'Phase 3',
+    title: 'Alpha Dog Status',
+    icon: '🎆',
     items: [
-      'Zeus DAO governance',
-      'Utilidades exclusivas para la Army',
-      'Expansión internacional',
-      'Zeus NFT Collection'
+      'Zeus DAO - Community Votes',
+      'Special Army Utilities',
+      'Global Pack Expansion',
+      'Zeus NFT Collection Launch'
     ]
   },
   {
-    phase: 'Fase 4',
-    title: 'La Inmortalidad',
-    icon: '♾️',
+    phase: 'Phase 4',
+    title: 'Eternal Good Boy',
+    icon: '✨',
     items: [
-      'Ecosistema Zeus completo',
-      'Integración DeFi avanzada',
-      'Zeus Metaverse',
-      'Legado eterno en crypto'
+      'Complete Zeus Ecosystem',
+      'Advanced DeFi Integration',
+      'Zeus Metaverse Park',
+      'Legendary Status Achieved'
     ]
   }
 ];

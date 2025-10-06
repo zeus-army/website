@@ -2,27 +2,23 @@ import React from 'react';
 import styled from 'styled-components';
 
 const FooterSection = styled.footer`
-  background: var(--color-secondary);
+  background: var(--color-card);
   padding: 3rem 2rem;
   text-align: center;
-  border-top: 1px solid var(--color-primary);
+  border-top: 4px solid var(--color-primary);
   position: relative;
   overflow: hidden;
+  margin-top: 5rem;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
   
   &::before {
-    content: '';
+    content: '🐾';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
-    animation: shimmer 3s infinite;
-  }
-  
-  @keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+    font-size: 15rem;
+    opacity: 0.05;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-15deg);
   }
 `;
 
@@ -50,25 +46,38 @@ const FooterLinks = styled.div`
   justify-content: center;
   margin-bottom: 2rem;
   flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
 `;
 
 const FooterLink = styled.a`
-  color: var(--color-text-secondary);
-  font-weight: 500;
+  color: var(--color-text);
+  font-weight: 700;
+  font-family: var(--font-alt);
   transition: all 0.3s ease;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
   
   &:hover {
-    color: var(--color-primary);
+    background: var(--color-primary);
+    color: var(--color-text-light);
+    transform: translateY(-2px);
   }
 `;
 
 const Disclaimer = styled.p`
-  color: var(--color-text-secondary);
-  font-size: 0.9rem;
+  color: var(--color-text);
+  font-size: 1rem;
   margin: 2rem auto;
   max-width: 800px;
   line-height: 1.6;
-  opacity: 0.8;
+  font-family: var(--font-body);
+  background: rgba(255, 229, 92, 0.2);
+  padding: 1.5rem;
+  border-radius: 20px;
+  border: 2px dashed var(--color-primary);
+  position: relative;
+  z-index: 1;
 `;
 
 const Copyright = styled.p`
@@ -93,23 +102,23 @@ const Footer: React.FC = () => {
         </Logo>
         
         <FooterLinks>
-          <FooterLink href="#about">Quiénes Somos</FooterLink>
-          <FooterLink href="#mission">Misión</FooterLink>
+          <FooterLink href="#about">About</FooterLink>
+          <FooterLink href="#mission">Mission</FooterLink>
           <FooterLink href="#roadmap">Roadmap</FooterLink>
           <FooterLink href="#leaderboard">Leaderboard</FooterLink>
-          <FooterLink href="#join">Únete</FooterLink>
+          <FooterLink href="#join">Join Pack</FooterLink>
         </FooterLinks>
         
         <Disclaimer>
-          Zeus Army es una comunidad independiente de holders y entusiastas de ZEUS. 
-          No somos asesores financieros. Siempre haz tu propia investigación (DYOR) 
-          antes de invertir en cualquier criptomoneda. Las criptomonedas son inversiones 
-          de alto riesgo y puedes perder todo tu capital.
+          ⚠️ Zeus Army is a community of diamond-pawed holders and ZEUS enthusiasts. 
+          We are not financial advisors - we're just dogs who love memes! Always DYOR 
+          (Do Your Own Research) before aping in. Remember: crypto is risky, you could 
+          lose all your treats... I mean, capital! Woof responsibly! 🐕
         </Disclaimer>
         
         <Copyright>
-          © 2024 Zeus Army. Todos los derechos reservados. | 
-          Hecho con ⚡ por la comunidad para la comunidad | 
+          © 2024 Zeus Army. All paws reserved. | 
+          Made with 💙 by the pack for the pack | 
           <a href="https://zeuscoin.vip" target="_blank" rel="noopener noreferrer"> ZEUS Official</a>
         </Copyright>
       </FooterContent>

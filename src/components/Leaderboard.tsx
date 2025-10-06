@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { useWeb3React } from '@web3-react/core';
-import { ethers } from 'ethers';
 import axios from 'axios';
 import { injected } from '../utils/connectors';
 
@@ -211,7 +210,6 @@ interface LeaderboardEntry {
 const Leaderboard: React.FC = () => {
   const { active, account, activate, library } = useWeb3React();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [loading, setLoading] = useState(false);
   const [joining, setJoining] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
 
@@ -239,13 +237,7 @@ const Leaderboard: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    if (active && account && !joining) {
-      joinLeaderboard();
-    }
-  }, [active, account]);
-
-  const joinLeaderboard = async () => {
+  const joinLeaderboard = useCallback(async () => {
     if (!account || !library) return;
 
     setJoining(true);
@@ -279,7 +271,13 @@ const Leaderboard: React.FC = () => {
     } finally {
       setJoining(false);
     }
-  };
+  }, [account, library]);
+
+  useEffect(() => {
+    if (active && account && !joining) {
+      joinLeaderboard();
+    }
+  }, [active, account, joining, joinLeaderboard]);
 
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;

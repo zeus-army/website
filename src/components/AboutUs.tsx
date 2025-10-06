@@ -7,7 +7,29 @@ const AboutSection = styled.section`
   min-height: 100vh;
   display: flex;
   align-items: center;
-  background: rgba(26, 26, 26, 0.5);
+  background: linear-gradient(135deg, rgba(75, 183, 73, 0.05), rgba(123, 104, 238, 0.05));
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '🎈';
+    position: absolute;
+    font-size: 10rem;
+    opacity: 0.1;
+    top: 10%;
+    right: 5%;
+    animation: float 10s ease-in-out infinite;
+  }
+  
+  &::after {
+    content: '🌟';
+    position: absolute;
+    font-size: 8rem;
+    opacity: 0.1;
+    bottom: 10%;
+    left: 5%;
+    animation: float 8s ease-in-out infinite reverse;
+  }
 `;
 
 const Container = styled.div`
@@ -42,16 +64,16 @@ const TeamGrid = styled.div`
 
 const TeamCard = styled(motion.div)`
   background: var(--color-card);
-  border-radius: 20px;
+  border-radius: 30px;
   overflow: hidden;
-  border: 2px solid transparent;
+  border: 3px solid var(--color-text);
   transition: all 0.3s ease;
   position: relative;
+  box-shadow: 5px 5px 0px var(--color-primary);
   
   &:hover {
-    border-color: var(--color-primary);
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(255, 215, 0, 0.2);
+    transform: translate(-3px, -3px) rotate(-1deg);
+    box-shadow: 8px 8px 0px var(--color-primary);
   }
   
   &::before {
@@ -60,8 +82,9 @@ const TeamCard = styled(motion.div)`
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+    height: 150px;
+    background: linear-gradient(180deg, var(--color-secondary), transparent);
+    opacity: 0.3;
   }
 `;
 
@@ -70,29 +93,23 @@ const ProfileImage = styled.div`
   height: 150px;
   margin: 2rem auto;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  background: var(--color-background);
+  border: 4px solid var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 4rem;
   position: relative;
+  z-index: 1;
+  box-shadow: 0 0 30px rgba(75, 183, 73, 0.3);
   
-  &::before {
-    content: '';
-    position: absolute;
-    inset: -3px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-    z-index: -1;
-    filter: blur(10px);
-    opacity: 0.5;
+  &:hover {
+    animation: bounce 0.5s ease;
   }
   
-  img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
+  @keyframes bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
   }
 `;
 
@@ -104,14 +121,21 @@ const ProfileContent = styled.div`
 const ProfileName = styled.h3`
   font-size: 2rem;
   margin-bottom: 0.5rem;
-  color: var(--color-primary);
+  color: var(--color-text);
+  font-family: var(--font-display);
+  text-transform: uppercase;
 `;
 
 const ProfileENS = styled.p`
-  color: var(--color-text-secondary);
+  color: var(--color-secondary);
   margin-bottom: 1rem;
-  font-family: monospace;
-  font-size: 0.9rem;
+  font-family: var(--font-alt);
+  font-size: 1rem;
+  font-weight: 600;
+  background: var(--color-accent);
+  padding: 0.3rem 1rem;
+  border-radius: 20px;
+  display: inline-block;
 `;
 
 const ProfileStats = styled.div`
@@ -136,32 +160,33 @@ const Stat = styled.div`
   .value {
     font-size: 1.5rem;
     font-weight: 700;
-    color: var(--color-primary);
+    color: var(--color-secondary);
     margin-top: 0.3rem;
+    font-family: var(--font-display);
   }
 `;
 
 const teamMembers = [
   {
-    nickname: 'Thunder Lord',
-    ens: 'thunderlord.eth',
+    nickname: 'Dog Father',
+    ens: 'dogfather.eth',
     zeusPercentage: '5.2%',
-    avatar: '⚡',
-    role: 'Fundador'
+    avatar: '👑',
+    role: 'Founder & Chief Woof'
   },
   {
-    nickname: 'Olympus Guard',
-    ens: 'olympusguard.eth',
+    nickname: 'Bone Master',
+    ens: 'bonemaster.eth',
     zeusPercentage: '3.8%',
-    avatar: '🛡️',
-    role: 'Estratega'
+    avatar: '🦴',
+    role: 'Strategy & Treats'
   },
   {
-    nickname: 'Lightning Strike',
-    ens: 'lightningstrike.eth',
+    nickname: 'Paw Captain',
+    ens: 'pawcaptain.eth',
     zeusPercentage: '2.9%',
-    avatar: '🌩️',
-    role: 'Community Lead'
+    avatar: '🐾',
+    role: 'Community Pack Leader'
   }
 ];
 
@@ -170,24 +195,36 @@ const AboutUs: React.FC = () => {
     <AboutSection id="about">
       <Container>
         <SectionTitle
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          initial={{ opacity: 0, scale: 0 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, type: "spring" }}
           viewport={{ once: true }}
         >
-          Quiénes Somos
+          The Pack Leaders 🐶
         </SectionTitle>
         
         <motion.p
-          style={{ textAlign: 'center', fontSize: '1.2rem', maxWidth: '800px', margin: '0 auto' }}
+          style={{ 
+            textAlign: 'center', 
+            fontSize: '1.3rem', 
+            maxWidth: '800px', 
+            margin: '0 auto',
+            fontFamily: 'var(--font-alt)',
+            fontWeight: '600',
+            color: 'var(--color-text)',
+            background: 'var(--color-card)',
+            padding: '2rem',
+            borderRadius: '30px',
+            border: '3px solid var(--color-primary)',
+            boxShadow: '5px 5px 0px var(--color-secondary)'
+          }}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           viewport={{ once: true }}
         >
-          Somos la élite del Olimpo crypto, unidos por la pasión hacia ZEUS y comprometidos 
-          con llevar este proyecto a las alturas divinas. Nuestra misión es construir la 
-          comunidad más fuerte y cohesionada del ecosistema memecoin.
+          We are Pepe's best friends, leading the most loyal pack in the memecoin universe! 
+          Zeus Army is where diamond paws meet legendary gains. Woof! 🚀🐾
         </motion.p>
         
         <TeamGrid>

@@ -18,25 +18,40 @@ const HeroContent = styled.div`
   max-width: 1000px;
 `;
 
+const ZeusEmoji = styled(motion.div)`
+  font-size: 8rem;
+  margin-bottom: 2rem;
+  filter: drop-shadow(0 0 30px rgba(75, 183, 73, 0.5));
+`;
+
 const Title = styled(motion.h1)`
   font-size: clamp(4rem, 10vw, 8rem);
   margin-bottom: 1rem;
   text-transform: uppercase;
   line-height: 0.9;
+  transform: rotate(-2deg);
   
   span {
     display: block;
     font-size: clamp(2rem, 5vw, 4rem);
-    color: var(--color-text);
-    -webkit-text-fill-color: initial;
+    color: var(--color-secondary);
+    transform: rotate(1deg);
+    margin-bottom: 0.5rem;
   }
 `;
 
 const Subtitle = styled(motion.p)`
-  font-size: 1.5rem;
-  color: var(--color-text-secondary);
+  font-size: 1.8rem;
+  color: var(--color-text);
   margin-bottom: 3rem;
-  font-weight: 300;
+  font-weight: 700;
+  font-family: var(--font-alt);
+  background: var(--color-accent);
+  padding: 0.5rem 2rem;
+  display: inline-block;
+  border-radius: 30px;
+  transform: rotate(-1deg);
+  box-shadow: 5px 5px 0px var(--color-primary);
 `;
 
 const CTAContainer = styled(motion.div)`
@@ -47,103 +62,109 @@ const CTAContainer = styled(motion.div)`
 `;
 
 const CTAButton = styled(motion.a)`
-  padding: 1rem 3rem;
+  padding: 1.2rem 3rem;
   border-radius: 50px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   transition: all 0.3s ease;
   display: inline-block;
+  font-family: var(--font-alt);
+  font-size: 1.2rem;
+  border: 3px solid var(--color-text);
+  position: relative;
 
   &.primary {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-    color: var(--color-background);
+    background: var(--color-primary);
+    color: var(--color-text-light);
+    box-shadow: 5px 5px 0px var(--color-secondary);
 
     &:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 15px 40px rgba(255, 215, 0, 0.4);
+      transform: translate(-2px, -2px);
+      box-shadow: 7px 7px 0px var(--color-secondary);
     }
   }
 
   &.secondary {
-    border: 2px solid var(--color-primary);
-    color: var(--color-primary);
-    background: transparent;
+    background: var(--color-secondary);
+    color: var(--color-text-light);
+    box-shadow: 5px 5px 0px var(--color-primary);
 
     &:hover {
-      background: var(--color-primary);
-      color: var(--color-background);
+      transform: translate(-2px, -2px);
+      box-shadow: 7px 7px 0px var(--color-primary);
     }
   }
 `;
 
-const Lightning = styled(motion.div)`
+const FloatingElement = styled(motion.div)`
   position: absolute;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
+  font-size: 3rem;
+  opacity: 0.7;
   
-  svg {
-    position: absolute;
-    width: 100px;
-    height: 200px;
-    fill: var(--color-primary);
-    opacity: 0.3;
+  &.bone {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  &.paw {
+    animation: float 8s ease-in-out infinite reverse;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-30px) rotate(10deg); }
   }
 `;
 
 const Hero: React.FC = () => {
-  const lightningVariants = {
+  const bounceVariants = {
     animate: {
-      opacity: [0, 1, 0],
+      y: [0, -20, 0],
       transition: {
-        duration: 0.2,
+        duration: 2,
         repeat: Infinity,
-        repeatDelay: Math.random() * 5 + 2
+        repeatType: "reverse" as const
       }
     }
   };
 
   return (
     <HeroSection>
-      <Lightning
-        initial={{ opacity: 0 }}
-        animate="animate"
-        variants={lightningVariants}
-        style={{ top: '20%', left: '10%' }}
-      >
-        <svg viewBox="0 0 100 200">
-          <path d="M40,0 L20,80 L40,80 L10,200 L50,70 L30,70 L60,0 Z" />
-        </svg>
-      </Lightning>
-
-      <Lightning
-        initial={{ opacity: 0 }}
-        animate="animate"
-        variants={lightningVariants}
-        style={{ top: '30%', right: '15%' }}
-      >
-        <svg viewBox="0 0 100 200">
-          <path d="M40,0 L20,80 L40,80 L10,200 L50,70 L30,70 L60,0 Z" />
-        </svg>
-      </Lightning>
+      <FloatingElement className="bone" style={{ top: '10%', left: '5%' }}>🦴</FloatingElement>
+      <FloatingElement className="paw" style={{ top: '20%', right: '10%' }}>🐾</FloatingElement>
+      <FloatingElement className="bone" style={{ bottom: '15%', left: '10%' }}>🦴</FloatingElement>
+      <FloatingElement className="paw" style={{ bottom: '25%', right: '5%' }}>🐾</FloatingElement>
+      <FloatingElement style={{ top: '50%', left: '2%' }}>💚</FloatingElement>
+      <FloatingElement style={{ top: '60%', right: '3%' }}>✨</FloatingElement>
 
       <HeroContent>
-        <Title
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+        <ZeusEmoji
+          animate="animate"
+          variants={bounceVariants}
         >
-          <span>Bienvenido a la</span>
-          Zeus Army
+          🐕
+        </ZeusEmoji>
+        <Title
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ 
+            duration: 0.8, 
+            delay: 0.2,
+            type: "spring",
+            stiffness: 200
+          }}
+          whileHover={{ scale: 1.05 }}
+        >
+          <span>Welcome to the</span>
+          ZEUS ARMY
         </Title>
         
         <Subtitle
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, rotate: -180 }}
+          animate={{ opacity: 1, rotate: -1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
         >
-          La comunidad más poderosa del Olimpo crypto
+          🌟 Pepe's Best Friend is Here! 🌟
         </Subtitle>
         
         <CTAContainer
@@ -157,7 +178,7 @@ const Hero: React.FC = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            Únete a la Army
+            Join the Pack 🚀
           </CTAButton>
           <CTAButton
             href="#leaderboard"
@@ -165,7 +186,7 @@ const Hero: React.FC = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            Ver Leaderboard
+            Leaderboard 🏆
           </CTAButton>
         </CTAContainer>
       </HeroContent>

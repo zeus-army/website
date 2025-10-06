@@ -10,9 +10,10 @@ const Nav = styled.nav`
   left: 0;
   right: 0;
   z-index: 1000;
-  background: rgba(0, 0, 0, 0.95);
+  background: var(--color-card);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--color-primary);
+  border-bottom: 3px solid var(--color-primary);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
 `;
 
 const NavContainer = styled.div`
@@ -26,13 +27,21 @@ const NavContainer = styled.div`
 
 const Logo = styled.div`
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: 2.5rem;
   color: var(--color-primary);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   
   span {
-    color: var(--color-accent);
+    color: var(--color-secondary);
+  }
+  
+  &::before {
+    content: '🐕';
+    font-size: 2rem;
   }
 `;
 
@@ -48,43 +57,37 @@ const NavLinks = styled.div`
 
 const NavLink = styled.a`
   color: var(--color-text);
-  font-weight: 600;
+  font-weight: 700;
+  font-family: var(--font-alt);
   transition: all 0.3s ease;
   position: relative;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
 
   &:hover {
-    color: var(--color-primary);
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: 0;
-    width: 0;
-    height: 2px;
+    color: var(--color-text-light);
     background: var(--color-primary);
-    transition: width 0.3s ease;
-  }
-
-  &:hover::after {
-    width: 100%;
+    transform: translateY(-2px) rotate(-1deg);
+    box-shadow: 3px 3px 0px var(--color-secondary);
   }
 `;
 
 const WalletButton = styled(motion.button)`
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-  color: var(--color-background);
+  background: var(--color-secondary);
+  color: var(--color-text-light);
   padding: 0.8rem 2rem;
   border-radius: 30px;
   font-weight: 700;
+  font-family: var(--font-alt);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   transition: all 0.3s ease;
+  border: 3px solid var(--color-text);
+  box-shadow: 3px 3px 0px var(--color-primary);
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0px var(--color-primary);
   }
 `;
 
@@ -136,11 +139,11 @@ const Navbar: React.FC = () => {
         </Logo>
         
         <NavLinks>
-          <NavLink href="#about">Quiénes Somos</NavLink>
-          <NavLink href="#mission">Misión</NavLink>
+          <NavLink href="#about">About Us</NavLink>
+          <NavLink href="#mission">Mission</NavLink>
           <NavLink href="#roadmap">Roadmap</NavLink>
           <NavLink href="#leaderboard">Leaderboard</NavLink>
-          <NavLink href="#join">Únete</NavLink>
+          <NavLink href="#join">Join Us</NavLink>
           
           <WalletButton
             whileHover={{ scale: 1.05 }}
@@ -149,7 +152,7 @@ const Navbar: React.FC = () => {
           >
             {active
               ? `${account?.slice(0, 6)}...${account?.slice(-4)}`
-              : 'Conectar Wallet'}
+              : 'Connect Wallet'}
           </WalletButton>
         </NavLinks>
 

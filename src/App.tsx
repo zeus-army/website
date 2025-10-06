@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { Web3ReactProvider } from '@web3-react/core';
 import { ethers } from 'ethers';
 import { GlobalStyles } from './styles/GlobalStyles';

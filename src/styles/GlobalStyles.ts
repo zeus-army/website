@@ -1,7 +1,7 @@
 import { createGlobalStyle } from 'styled-components';
 
 export const GlobalStyles = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;900&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Fredoka:wght@400;600;700&family=Chewy&display=swap');
 
   * {
     margin: 0;
@@ -10,15 +10,18 @@ export const GlobalStyles = createGlobalStyle`
   }
 
   :root {
-    --color-primary: #FFD700; /* Gold */
-    --color-secondary: #1a1a1a;
-    --color-accent: #4B0082; /* Indigo */
-    --color-text: #FFFFFF;
-    --color-text-secondary: #B8B8B8;
-    --color-background: #000000;
-    --color-card: rgba(26, 26, 26, 0.9);
-    --font-display: 'Bebas Neue', sans-serif;
-    --font-body: 'Inter', sans-serif;
+    --color-primary: #4BB749; /* Pepe Green */
+    --color-secondary: #7B68EE; /* Purple */
+    --color-accent: #FFE55C; /* Yellow */
+    --color-blue: #4A90E2; /* Blue like Pepe's shirt */
+    --color-pink: #FF6B9D; /* Pink accents */
+    --color-text: #2C2C2C;
+    --color-text-light: #FFFFFF;
+    --color-background: #F0F8FF; /* Light blue-ish background */
+    --color-card: rgba(255, 255, 255, 0.9);
+    --font-display: 'Chewy', cursive;
+    --font-body: 'Comic Neue', cursive;
+    --font-alt: 'Fredoka', sans-serif;
   }
 
   body {
@@ -27,6 +30,10 @@ export const GlobalStyles = createGlobalStyle`
     color: var(--color-text);
     overflow-x: hidden;
     position: relative;
+    background-image: 
+      radial-gradient(circle at 20% 50%, rgba(75, 183, 73, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(123, 104, 238, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 40% 20%, rgba(255, 229, 92, 0.1) 0%, transparent 50%);
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -37,15 +44,15 @@ export const GlobalStyles = createGlobalStyle`
   h1 {
     font-size: clamp(3rem, 8vw, 6rem);
     font-weight: 700;
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--color-primary);
+    text-shadow: 3px 3px 0px var(--color-secondary),
+                 6px 6px 0px rgba(123, 104, 238, 0.3);
   }
 
   h2 {
     font-size: clamp(2rem, 5vw, 3.5rem);
-    color: var(--color-primary);
+    color: var(--color-secondary);
+    text-shadow: 2px 2px 0px var(--color-accent);
   }
 
   h3 {
@@ -54,16 +61,19 @@ export const GlobalStyles = createGlobalStyle`
 
   p {
     line-height: 1.6;
-    color: var(--color-text-secondary);
+    color: var(--color-text);
+    font-weight: 400;
   }
 
   a {
     text-decoration: none;
     color: var(--color-primary);
     transition: all 0.3s ease;
+    font-weight: 700;
 
     &:hover {
-      color: var(--color-accent);
+      color: var(--color-secondary);
+      transform: scale(1.05);
     }
   }
 
@@ -81,7 +91,7 @@ export const GlobalStyles = createGlobalStyle`
     padding: 0 20px;
   }
 
-  /* Zeus Lightning Background */
+  /* Psychedelic Background */
   .lightning-bg {
     position: fixed;
     top: 0;
@@ -98,15 +108,36 @@ export const GlobalStyles = createGlobalStyle`
       left: -50%;
       width: 200%;
       height: 200%;
-      background: radial-gradient(
-        circle at center,
-        transparent 0%,
-        rgba(255, 215, 0, 0.03) 30%,
-        rgba(75, 0, 130, 0.05) 60%,
-        transparent 100%
-      );
-      animation: rotate 30s linear infinite;
+      background: 
+        repeating-conic-gradient(
+          from 0deg at 50% 50%,
+          rgba(75, 183, 73, 0.05) 0deg,
+          rgba(123, 104, 238, 0.05) 60deg,
+          rgba(255, 229, 92, 0.05) 120deg,
+          rgba(255, 107, 157, 0.05) 180deg,
+          rgba(74, 144, 226, 0.05) 240deg,
+          rgba(75, 183, 73, 0.05) 360deg
+        );
+      animation: rotate 60s linear infinite;
     }
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        radial-gradient(circle at 30% 40%, rgba(75, 183, 73, 0.2) 0%, transparent 40%),
+        radial-gradient(circle at 70% 60%, rgba(123, 104, 238, 0.2) 0%, transparent 40%);
+      animation: pulse 4s ease-in-out infinite alternate;
+    }
+  }
+  
+  @keyframes pulse {
+    0% { opacity: 0.5; }
+    100% { opacity: 0.8; }
   }
 
   @keyframes rotate {
@@ -188,19 +219,22 @@ export const GlobalStyles = createGlobalStyle`
 
   /* Custom scrollbar */
   ::-webkit-scrollbar {
-    width: 10px;
+    width: 15px;
   }
 
   ::-webkit-scrollbar-track {
-    background: var(--color-secondary);
+    background: var(--color-background);
+    border: 2px solid var(--color-primary);
+    border-radius: 10px;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: var(--color-primary);
-    border-radius: 5px;
+    background: linear-gradient(180deg, var(--color-primary), var(--color-secondary));
+    border-radius: 10px;
+    border: 2px solid var(--color-background);
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-accent);
+    background: linear-gradient(180deg, var(--color-secondary), var(--color-primary));
   }
 `;

@@ -4,10 +4,5 @@
       "source": "/api/(.*)",
       "destination": "/api/$1"
     }
-  ],
-  "env": {
-    "KV_REST_API_URL": "@kv_rest_api_url",
-    "KV_REST_API_TOKEN": "@kv_rest_api_token",
-    "ETHEREUM_RPC_URL": "@ethereum_rpc_url"
-  }
+  ]
 }

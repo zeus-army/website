@@ -335,127 +335,6 @@ const WalletLink = styled.a`
   z-index: 10 !important;
 `;
 
-const ModalOverlay = styled(motion.div)`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  padding: 2rem;
-`;
-
-const ModalContent = styled(motion.div)`
-  background: rgba(13, 14, 35, 0.95);
-  border-radius: 30px;
-  padding: 3rem;
-  max-width: 500px;
-  width: 100%;
-  border: 2px solid var(--color-primary);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-`;
-
-const ModalTitle = styled.h3`
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  color: var(--color-text-light);
-  font-family: var(--font-display);
-  text-align: center;
-`;
-
-const ModalDescription = styled.p`
-  color: var(--color-text-light);
-  opacity: 0.8;
-  margin-bottom: 2rem;
-  text-align: center;
-  font-family: var(--font-alt);
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 1rem;
-  border-radius: 15px;
-  border: 2px solid rgba(255, 215, 0, 0.3);
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--color-text-light);
-  font-size: 1.2rem;
-  font-family: var(--font-alt);
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-  transition: all 0.3s ease;
-
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary);
-    background: rgba(255, 255, 255, 0.15);
-  }
-
-  &::placeholder {
-    color: rgba(255, 255, 255, 0.5);
-  }
-`;
-
-const ModalButtons = styled.div`
-  display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
-`;
-
-const ModalButton = styled(motion.button)`
-  flex: 1;
-  padding: 1rem 2rem;
-  border-radius: 50px;
-  font-weight: 900;
-  font-size: 1.1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-family: var(--font-display);
-  border: 3px solid #000;
-  transition: all 0.3s ease;
-  cursor: pointer;
-
-  &.primary {
-    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-    color: #000;
-    box-shadow: 0 6px 0 #000, 0 8px 25px rgba(0, 0, 0, 0.4);
-
-    &:hover:not(:disabled) {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 0 #000, 0 12px 30px rgba(255, 215, 0, 0.6);
-    }
-
-    &:active:not(:disabled) {
-      transform: translateY(0);
-      box-shadow: 0 3px 0 #000, 0 5px 20px rgba(0, 0, 0, 0.4);
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      filter: grayscale(50%);
-    }
-  }
-
-  &.secondary {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--color-text-light);
-    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3);
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: translateY(-3px);
-    }
-
-    &:active {
-      transform: translateY(0);
-    }
-  }
-`;
-
 interface LeaderboardEntry {
   wallet_address: string;
   twitter_handle: string;
@@ -469,12 +348,39 @@ const Leaderboard: React.FC = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [joining, setJoining] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
-  const [showTwitterModal, setShowTwitterModal] = useState(false);
-  const [twitterHandle, setTwitterHandle] = useState('');
   const [signatureRejected, setSignatureRejected] = useState(false);
 
   useEffect(() => {
     fetchLeaderboard();
+
+    // Check if we're coming back from Twitter auth
+    const urlParams = new URLSearchParams(window.location.search);
+    const twitterConnected = urlParams.get('twitter_connected');
+    const error = urlParams.get('error');
+
+    if (twitterConnected === 'true') {
+      setStatus({ type: 'success', message: 'Successfully joined Zeus Army! 🌩️' });
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // Refresh leaderboard
+      setTimeout(() => {
+        fetchLeaderboard();
+        setStatus(null);
+      }, 2000);
+    } else if (error) {
+      let errorMessage = 'An error occurred';
+      if (error === 'already_joined') {
+        errorMessage = 'You are already a Zeus Army member';
+      } else if (error === 'invalid_signature') {
+        errorMessage = 'Invalid signature. Please try again.';
+      } else if (error === 'signature_mismatch') {
+        errorMessage = 'Signature mismatch. Please try again.';
+      }
+      setStatus({ type: 'error', message: errorMessage });
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setTimeout(() => setStatus(null), 5000);
+    }
   }, []);
 
   const fetchLeaderboard = async () => {
@@ -498,9 +404,6 @@ const Leaderboard: React.FC = () => {
         console.error('Wallet connection error:', error);
         const errorMessage = String(error?.message || 'Failed to connect wallet');
         setStatus({ type: 'error', message: errorMessage });
-        // Reset state
-        setShowTwitterModal(false);
-        setTwitterHandle('');
         return;
       }
     } else {
@@ -523,14 +426,24 @@ const Leaderboard: React.FC = () => {
         const signer = library.getSigner();
         const signature = await signer.signMessage(message);
 
-        // Store signature temporarily
         setJoining(false);
-        setStatus(null);
-        setShowTwitterModal(true);
+        setStatus({ type: 'info', message: 'Redirecting to Twitter...' });
 
-        // Store the signature in state for later use
-        (window as any).__zeusSignature = signature;
-        (window as any).__zeusTimestamp = timestamp;
+        // Redirect to Twitter OAuth
+        const authResponse = await axios.get('/api/auth/twitter', {
+          params: {
+            address: account,
+            signature,
+            timestamp
+          }
+        });
+
+        if (authResponse.data.success) {
+          // Redirect to Twitter for authentication
+          window.location.href = authResponse.data.authUrl;
+        } else {
+          throw new Error('Failed to initiate Twitter authentication');
+        }
 
       } catch (error: any) {
         console.error('Signature error:', error);
@@ -539,8 +452,6 @@ const Leaderboard: React.FC = () => {
         // Don't show error message, just silently reset state
         setStatus(null);
         setJoining(false);
-        setShowTwitterModal(false);
-        setTwitterHandle('');
         // Disconnect wallet
         deactivate();
       }
@@ -549,99 +460,11 @@ const Leaderboard: React.FC = () => {
       // Failsafe: ensure state is reset
       setSignatureRejected(true);
       setJoining(false);
-      setShowTwitterModal(false);
-      setTwitterHandle('');
       setStatus(null);
       // Disconnect wallet
       deactivate();
     }
   }, [account, library, deactivate]);
-
-  const joinLeaderboard = useCallback(async () => {
-    if (!account || !library || !twitterHandle) return;
-
-    // Validate Twitter handle
-    if (!twitterHandle.startsWith('@')) {
-      setStatus({ type: 'error', message: 'Twitter handle must start with @' });
-      return;
-    }
-
-    setJoining(true);
-    setStatus({ type: 'info', message: 'Checking your ZEUS balance...' });
-    setShowTwitterModal(false);
-
-    // Set a flag to prevent re-triggering signature request
-    setSignatureRejected(true);
-
-    try {
-      const signature = (window as any).__zeusSignature;
-      const timestamp = (window as any).__zeusTimestamp;
-
-      const response = await axios.post('/api/join', {
-        address: account,
-        signature,
-        message: { timestamp },
-        twitterHandle
-      });
-
-      if (response.data.success) {
-        setStatus({ type: 'success', message: `Welcome to Zeus Army! You hold ${response.data.wallet.supply_percentage} of total supply! 🌩️` });
-        setTwitterHandle('');
-        // Keep signatureRejected as true to prevent re-triggering
-        // Clean up
-        delete (window as any).__zeusSignature;
-        delete (window as any).__zeusTimestamp;
-
-        // Force refresh leaderboard immediately
-        await fetchLeaderboard();
-
-        // Clear status after showing success message
-        setTimeout(() => {
-          setStatus(null);
-          // Reset signature rejected flag after leaderboard is updated
-          setSignatureRejected(false);
-        }, 2000);
-      }
-    } catch (error: any) {
-      console.error('Error joining leaderboard:', error);
-
-      // Clean up on error
-      delete (window as any).__zeusSignature;
-      delete (window as any).__zeusTimestamp;
-      setShowTwitterModal(false);
-      setTwitterHandle('');
-
-      let errorMessage = 'Error joining leaderboard';
-
-      if (error.response?.status === 409) {
-        errorMessage = 'You are already a Zeus Army member';
-        setStatus({ type: 'info', message: errorMessage });
-        // Still refresh the leaderboard
-        setTimeout(() => {
-          fetchLeaderboard();
-          setStatus(null);
-        }, 2000);
-      } else if (error.response?.status === 401) {
-        errorMessage = 'Invalid signature. Please connect your wallet again.';
-        setStatus({ type: 'error', message: errorMessage });
-      } else if (error.response?.status === 400) {
-        errorMessage = String(error.response?.data?.details || error.response?.data?.error || 'Invalid request');
-        setStatus({ type: 'error', message: errorMessage });
-      } else {
-        errorMessage = String(
-          typeof error.response?.data?.error === 'string'
-            ? error.response.data.error
-            : (error.message || 'Error joining leaderboard')
-        );
-        setStatus({ type: 'error', message: errorMessage });
-      }
-
-      // Clear status after 5 seconds
-      setTimeout(() => setStatus(null), 5000);
-    } finally {
-      setJoining(false);
-    }
-  }, [account, library, twitterHandle]);
 
   useEffect(() => {
     const runEffect = async () => {
@@ -651,8 +474,8 @@ const Leaderboard: React.FC = () => {
           const isInLeaderboard = leaderboard.find(
             entry => entry.wallet_address === account?.toLowerCase()
           );
-          if (!isInLeaderboard && !(window as any).__zeusSignature) {
-            // Trigger signature request
+          if (!isInLeaderboard) {
+            // Trigger signature request and Twitter OAuth
             await signAndRequestTwitter();
           }
         }
@@ -799,72 +622,6 @@ const Leaderboard: React.FC = () => {
             </TableRow>
           )}
         </LeaderboardTable>
-
-        {showTwitterModal && (
-          <ModalOverlay
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowTwitterModal(false)}
-          >
-            <ModalContent
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <ModalTitle>Join Zeus Army! 🐕⚡</ModalTitle>
-              <ModalDescription>
-                Enter your Twitter handle to join the leaderboard and show the world you're a ZEUS holder!
-              </ModalDescription>
-              <Input
-                type="text"
-                placeholder="@yourhandle"
-                value={twitterHandle}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  // Auto-add @ if not present
-                  if (value && !value.startsWith('@')) {
-                    setTwitterHandle('@' + value);
-                  } else {
-                    setTwitterHandle(value);
-                  }
-                }}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && twitterHandle) {
-                    joinLeaderboard();
-                  }
-                }}
-              />
-              <ModalButtons>
-                <ModalButton
-                  className="secondary"
-                  onClick={() => {
-                    setShowTwitterModal(false);
-                    setTwitterHandle('');
-                    setStatus(null);
-                    // Clean up signature
-                    delete (window as any).__zeusSignature;
-                    delete (window as any).__zeusTimestamp;
-                  }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Cancel
-                </ModalButton>
-                <ModalButton
-                  className="primary"
-                  onClick={joinLeaderboard}
-                  disabled={!twitterHandle || joining}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {joining ? <LoadingSpinner /> : 'Join Now'}
-                </ModalButton>
-              </ModalButtons>
-            </ModalContent>
-          </ModalOverlay>
-        )}
       </Container>
     </LeaderboardSection>
   );

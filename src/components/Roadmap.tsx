@@ -4,9 +4,44 @@ import { motion } from 'framer-motion';
 
 const RoadmapSection = styled.section`
   padding: 5rem 2rem;
-  background: linear-gradient(135deg, rgba(255, 229, 92, 0.05), rgba(74, 144, 226, 0.05));
   position: relative;
   overflow: hidden;
+  min-height: 100vh;
+
+  /* Main roadmap background image */
+  background-image: url('/images/roadmap-bg.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+
+  /* Top decorative clouds */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 25%;
+    background-image: url('/images/roadmap-top.webp');
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    opacity: 0.9;
+    z-index: 0;
+  }
+
+  /* Light overlay for better readability */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.05);
+    z-index: 0;
+  }
 `;
 
 const Container = styled.div`
@@ -41,9 +76,10 @@ const Timeline = styled.div`
     left: 50%;
     top: 0;
     bottom: 0;
-    width: 2px;
-    background: linear-gradient(180deg, var(--color-primary), var(--color-accent));
+    width: 4px;
+    background: var(--gradient-rainbow);
     transform: translateX(-50%);
+    box-shadow: 0 0 20px rgba(255, 221, 89, 0.5);
     
     @media (max-width: 768px) {
       left: 30px;
@@ -74,17 +110,27 @@ const TimelineItem = styled(motion.div)<{ $align: 'left' | 'right' }>`
 const TimelineContent = styled.div<{ $align: 'left' | 'right' }>`
   flex: 1;
   padding: ${props => props.$align === 'left' ? '0 2rem 0 0' : '0 0 0 2rem'};
+  background: rgba(13, 14, 35, 0.6);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
   
   @media (max-width: 768px) {
-    padding: 0 0 0 4rem;
+    padding: 2rem;
+    margin-left: 4rem;
   }
 `;
 
 const TimelineNode = styled.div`
-  width: 80px;
-  height: 80px;
-  background: var(--color-card);
-  border: 4px solid var(--color-primary);
+  width: 90px;
+  height: 90px;
+  background: var(--color-background);
+  border: 3px solid transparent;
+  background-image: linear-gradient(var(--color-background), var(--color-background)), var(--gradient-rainbow);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -93,8 +139,14 @@ const TimelineNode = styled.div`
   left: 50%;
   transform: translateX(-50%);
   z-index: 1;
-  font-size: 2rem;
-  box-shadow: 0 0 20px rgba(75, 183, 73, 0.4);
+  font-size: 2.5rem;
+  box-shadow: 0 0 40px rgba(165, 94, 234, 0.6);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateX(-50%) scale(1.1);
+    box-shadow: 0 0 60px rgba(255, 221, 89, 0.8);
+  }
   
   @media (max-width: 768px) {
     left: 30px;
@@ -111,9 +163,11 @@ const Phase = styled.h3`
 `;
 
 const PhaseTitle = styled.h4`
-  font-size: 1.8rem;
+  font-size: 2rem;
   margin-bottom: 1rem;
-  color: var(--color-text);
+  color: var(--color-text-light);
+  font-family: var(--font-display);
+  text-shadow: 0 0 20px currentColor;
 `;
 
 const PhaseItems = styled.ul`
@@ -121,16 +175,28 @@ const PhaseItems = styled.ul`
   padding: 0;
   
   li {
-    margin-bottom: 0.8rem;
-    color: var(--color-text-secondary);
+    margin-bottom: 1rem;
+    color: var(--color-text-light);
+    opacity: 0.9;
     position: relative;
-    padding-left: 1.5rem;
+    padding-left: 2rem;
+    font-family: var(--font-alt);
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.8rem 1rem 0.8rem 2.5rem;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(5px);
+    }
     
     &::before {
-      content: '⚡';
+      content: '🌈';
       position: absolute;
-      left: 0;
-      color: var(--color-primary);
+      left: 0.8rem;
+      font-size: 1.2rem;
     }
   }
 `;
@@ -187,12 +253,13 @@ const Roadmap: React.FC = () => {
     <RoadmapSection id="roadmap">
       <Container>
         <SectionTitle
+          data-text="ROADMAP"
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          Roadmap
+          ROADMAP
         </SectionTitle>
         
         <Timeline>

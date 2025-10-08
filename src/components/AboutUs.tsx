@@ -7,28 +7,46 @@ const AboutSection = styled.section`
   min-height: 100vh;
   display: flex;
   align-items: center;
-  background: linear-gradient(135deg, rgba(75, 183, 73, 0.05), rgba(123, 104, 238, 0.05));
   position: relative;
   overflow: hidden;
-  
+
+  /* Light sky background */
+  background: linear-gradient(180deg,
+    rgba(176, 224, 230, 0.4) 0%,
+    rgba(135, 206, 250, 0.3) 50%,
+    rgba(176, 224, 230, 0.4) 100%
+  );
+
+  /* Top decorative image */
   &::before {
-    content: '🎈';
+    content: '';
     position: absolute;
-    font-size: 10rem;
-    opacity: 0.1;
-    top: 10%;
-    right: 5%;
-    animation: float 10s ease-in-out infinite;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 30%;
+    background-image: url('/images/buy-bg-top.webp');
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    opacity: 0.9;
+    z-index: 0;
   }
-  
+
+  /* Decorative bottom image */
   &::after {
-    content: '🌟';
+    content: '';
     position: absolute;
-    font-size: 8rem;
-    opacity: 0.1;
-    bottom: 10%;
-    left: 5%;
-    animation: float 8s ease-in-out infinite reverse;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 35%;
+    background-image: url('/images/about-bottom.webp');
+    background-size: cover;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    opacity: 0.9;
+    z-index: 0;
   }
 `;
 
@@ -36,6 +54,8 @@ const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
+  position: relative;
+  z-index: 10;
 `;
 
 const SectionTitle = styled(motion.h2)`
@@ -63,19 +83,23 @@ const TeamGrid = styled.div`
 `;
 
 const TeamCard = styled(motion.div)`
-  background: var(--color-card);
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 30px;
   overflow: hidden;
-  border: 3px solid var(--color-text);
+  border: 3px solid transparent;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), var(--gradient-rainbow);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
   transition: all 0.3s ease;
   position: relative;
-  box-shadow: 5px 5px 0px var(--color-primary);
-  
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+
   &:hover {
-    transform: translate(-3px, -3px) rotate(-1deg);
-    box-shadow: 8px 8px 0px var(--color-primary);
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 20px 60px rgba(30, 144, 255, 0.3);
+    background: rgba(255, 255, 255, 0.95);
   }
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -83,8 +107,8 @@ const TeamCard = styled(motion.div)`
     left: 0;
     right: 0;
     height: 150px;
-    background: linear-gradient(180deg, var(--color-secondary), transparent);
-    opacity: 0.3;
+    background: var(--gradient-rainbow);
+    opacity: 0.15;
   }
 `;
 
@@ -94,14 +118,17 @@ const ProfileImage = styled.div`
   margin: 2rem auto;
   border-radius: 50%;
   background: var(--color-background);
-  border: 4px solid var(--color-primary);
+  border: 3px solid transparent;
+  background-image: linear-gradient(var(--color-background), var(--color-background)), var(--gradient-rainbow);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 4rem;
   position: relative;
   z-index: 1;
-  box-shadow: 0 0 30px rgba(75, 183, 73, 0.3);
+  box-shadow: 0 0 50px rgba(165, 94, 234, 0.5);
   
   &:hover {
     animation: bounce 0.5s ease;
@@ -121,21 +148,23 @@ const ProfileContent = styled.div`
 const ProfileName = styled.h3`
   font-size: 2rem;
   margin-bottom: 0.5rem;
-  color: var(--color-text);
+  color: #1a1a2e;
   font-family: var(--font-display);
   text-transform: uppercase;
+  text-shadow: 2px 2px 4px rgba(30, 144, 255, 0.3);
 `;
 
 const ProfileENS = styled.p`
-  color: var(--color-secondary);
+  color: var(--color-text-light);
   margin-bottom: 1rem;
   font-family: var(--font-alt);
   font-size: 1rem;
   font-weight: 600;
-  background: var(--color-accent);
+  background: var(--gradient-rainbow);
   padding: 0.3rem 1rem;
   border-radius: 20px;
   display: inline-block;
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
 `;
 
 const ProfileStats = styled.div`
@@ -144,7 +173,7 @@ const ProfileStats = styled.div`
   gap: 2rem;
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 215, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 `;
 
 const Stat = styled.div`
@@ -152,7 +181,8 @@ const Stat = styled.div`
   
   .label {
     font-size: 0.8rem;
-    color: var(--color-text-secondary);
+    color: var(--color-text-light);
+    opacity: 0.8;
     text-transform: uppercase;
     letter-spacing: 0.1em;
   }
@@ -160,9 +190,13 @@ const Stat = styled.div`
   .value {
     font-size: 1.5rem;
     font-weight: 700;
-    color: var(--color-secondary);
+    background: linear-gradient(90deg, var(--color-green), var(--color-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin-top: 0.3rem;
     font-family: var(--font-display);
+    filter: drop-shadow(0 0 10px rgba(75, 183, 73, 0.3));
   }
 `;
 
@@ -195,35 +229,40 @@ const AboutUs: React.FC = () => {
     <AboutSection id="about">
       <Container>
         <SectionTitle
+          data-text="THE PACK LEADERS"
           initial={{ opacity: 0, scale: 0 }}
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, type: "spring" }}
           viewport={{ once: true }}
         >
-          The Pack Leaders 🐶
+          THE PACK LEADERS 🐶
         </SectionTitle>
         
         <motion.p
-          style={{ 
-            textAlign: 'center', 
-            fontSize: '1.3rem', 
-            maxWidth: '800px', 
+          style={{
+            textAlign: 'center',
+            fontSize: '1.4rem',
+            maxWidth: '850px',
             margin: '0 auto',
             fontFamily: 'var(--font-alt)',
-            fontWeight: '600',
-            color: 'var(--color-text)',
-            background: 'var(--color-card)',
-            padding: '2rem',
-            borderRadius: '30px',
-            border: '3px solid var(--color-primary)',
-            boxShadow: '5px 5px 0px var(--color-secondary)'
+            fontWeight: '700',
+            color: '#1a1a2e',
+            background: 'rgba(255, 255, 255, 0.95)',
+            padding: '2.5rem 3rem',
+            borderRadius: '40px',
+            border: '5px solid #000',
+            boxShadow: '0 10px 0 #000, 0 12px 40px rgba(0, 0, 0, 0.3)',
+            position: 'relative',
+            zIndex: 10,
+            lineHeight: '1.8',
+            transform: 'rotate(-1deg)'
           }}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           viewport={{ once: true }}
         >
-          We are Pepe's best friends, leading the most loyal pack in the memecoin universe! 
+          We are Pepe's best friends, leading the most loyal pack in the memecoin universe!
           Zeus Army is where diamond paws meet legendary gains. Woof! 🚀🐾
         </motion.p>
         

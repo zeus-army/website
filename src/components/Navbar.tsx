@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { useWeb3React } from '@web3-react/core';
-import { injected } from '../utils/connectors';
-import { motion } from 'framer-motion';
 
 const Nav = styled.nav`
   position: fixed;
@@ -10,10 +7,11 @@ const Nav = styled.nav`
   left: 0;
   right: 0;
   z-index: 1000;
-  background: var(--color-card);
-  backdrop-filter: blur(10px);
-  border-bottom: 3px solid var(--color-primary);
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  background: rgba(13, 14, 35, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 2px solid transparent;
+  border-image: var(--gradient-rainbow) 1;
+  box-shadow: 0 5px 30px rgba(0, 0, 0, 0.5);
 `;
 
 const NavContainer = styled.div`
@@ -28,20 +26,28 @@ const NavContainer = styled.div`
 const Logo = styled.div`
   font-family: var(--font-display);
   font-size: 2.5rem;
-  color: var(--color-primary);
+  background: var(--gradient-rainbow);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
   
   span {
-    color: var(--color-secondary);
+    background: linear-gradient(90deg, var(--color-pink), var(--color-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
   
   &::before {
     content: '🐕';
     font-size: 2rem;
+    filter: drop-shadow(0 0 10px rgba(75, 183, 73, 0.5));
   }
 `;
 
@@ -56,38 +62,34 @@ const NavLinks = styled.div`
 `;
 
 const NavLink = styled.a`
-  color: var(--color-text);
+  color: var(--color-text-light);
   font-weight: 700;
   font-family: var(--font-alt);
   transition: all 0.3s ease;
   position: relative;
   padding: 0.5rem 1rem;
-  border-radius: 20px;
+  border-radius: 25px;
+  opacity: 0.9;
 
-  &:hover {
-    color: var(--color-text-light);
-    background: var(--color-primary);
-    transform: translateY(-2px) rotate(-1deg);
-    box-shadow: 3px 3px 0px var(--color-secondary);
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--gradient-rainbow);
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
   }
-`;
-
-const WalletButton = styled(motion.button)`
-  background: var(--color-secondary);
-  color: var(--color-text-light);
-  padding: 0.8rem 2rem;
-  border-radius: 30px;
-  font-weight: 700;
-  font-family: var(--font-alt);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  transition: all 0.3s ease;
-  border: 3px solid var(--color-text);
-  box-shadow: 3px 3px 0px var(--color-primary);
 
   &:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0px var(--color-primary);
+    opacity: 1;
+    transform: translateY(-2px);
+    
+    &::after {
+      width: 80%;
+    }
   }
 `;
 
@@ -112,24 +114,7 @@ const MobileMenu = styled.button`
 `;
 
 const Navbar: React.FC = () => {
-  const { active, account, activate, deactivate } = useWeb3React();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const connectWallet = async () => {
-    try {
-      await activate(injected);
-    } catch (error) {
-      console.error("Failed to connect:", error);
-    }
-  };
-
-  const disconnectWallet = () => {
-    try {
-      deactivate();
-    } catch (error) {
-      console.error("Failed to disconnect:", error);
-    }
-  };
 
   return (
     <Nav>
@@ -142,18 +127,8 @@ const Navbar: React.FC = () => {
           <NavLink href="#about">About Us</NavLink>
           <NavLink href="#mission">Mission</NavLink>
           <NavLink href="#roadmap">Roadmap</NavLink>
-          <NavLink href="#leaderboard">Leaderboard</NavLink>
+          <NavLink href="#leaderboard">Whales</NavLink>
           <NavLink href="#join">Join Us</NavLink>
-          
-          <WalletButton
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={active ? disconnectWallet : connectWallet}
-          >
-            {active
-              ? `${account?.slice(0, 6)}...${account?.slice(-4)}`
-              : 'Connect Wallet'}
-          </WalletButton>
         </NavLinks>
 
         <MobileMenu onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>

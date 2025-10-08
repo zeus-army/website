@@ -4,9 +4,28 @@ import { motion } from 'framer-motion';
 
 const JoinSection = styled.section`
   padding: 5rem 2rem;
-  background: rgba(26, 26, 26, 0.5);
   position: relative;
   overflow: hidden;
+  min-height: 90vh;
+
+  /* Main join background */
+  background-image: url('/images/join-bg.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+
+  /* Light overlay for better readability */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    z-index: 0;
+  }
 `;
 
 const Container = styled.div`
@@ -74,17 +93,23 @@ const StepCard = styled(motion.div)`
 `;
 
 const StepNumber = styled.div`
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   margin: 0 auto 1.5rem;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
   border-radius: 50%;
+  border: 5px solid #000;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-background);
+  font-size: 2rem;
+  font-weight: 900;
+  color: #000;
+  font-family: var(--font-display);
+  box-shadow:
+    0 6px 0 #000,
+    0 8px 20px rgba(0, 0, 0, 0.3);
+  text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.5);
   transition: transform 0.3s ease;
 `;
 
@@ -105,19 +130,39 @@ const CTAContainer = styled(motion.div)`
 
 const CTAButton = styled(motion.a)`
   display: inline-block;
-  padding: 1.2rem 3rem;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-  color: var(--color-background);
-  border-radius: 50px;
-  font-weight: 700;
+  padding: 1.5rem 4rem;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #000;
+  border-radius: 60px;
+  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 1.1rem;
+  letter-spacing: 0.15em;
+  font-size: 1.5rem;
+  font-family: var(--font-display);
+  border: 5px solid #000;
+  box-shadow:
+    0 10px 0 #000,
+    0 12px 35px rgba(0, 0, 0, 0.4);
+  text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.5);
   transition: all 0.3s ease;
-  
+  transform: rotate(-1deg);
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 100;
+
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 15px 40px rgba(255, 215, 0, 0.4);
+    transform: translateY(-8px) rotate(-1deg) scale(1.08);
+    box-shadow:
+      0 15px 0 #000,
+      0 18px 50px rgba(255, 215, 0, 0.7);
+  }
+
+  &:active {
+    transform: translateY(0) rotate(-1deg);
+    box-shadow:
+      0 5px 0 #000,
+      0 7px 25px rgba(0, 0, 0, 0.4);
   }
 `;
 
@@ -129,47 +174,57 @@ const SocialLinks = styled(motion.div)`
 `;
 
 const SocialLink = styled(motion.a)`
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-card);
-  border: 2px solid var(--color-primary);
+  background: linear-gradient(135deg, #1E90FF 0%, #00BFFF 100%);
+  border: 4px solid #000;
   border-radius: 50%;
-  font-size: 1.5rem;
+  font-size: 2rem;
+  box-shadow:
+    0 6px 0 #000,
+    0 8px 20px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
-  
+  transform: rotate(0deg);
+  cursor: pointer;
+
   &:hover {
-    background: var(--color-primary);
-    transform: translateY(-5px) rotate(10deg);
-    
-    span {
-      filter: brightness(0) invert(1);
-    }
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    transform: translateY(-6px) rotate(15deg) scale(1.15);
+    box-shadow:
+      0 10px 0 #000,
+      0 12px 30px rgba(30, 144, 255, 0.5);
+  }
+
+  &:active {
+    transform: translateY(0) rotate(5deg);
+    box-shadow:
+      0 3px 0 #000,
+      0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+
+  span {
+    filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.3));
   }
 `;
 
 const steps = [
   {
     number: "1",
-    title: "Obtén ZEUS",
-    description: "Compra ZEUS en tu exchange favorito o swap en Uniswap"
+    title: "Get ZEUS",
+    description: "Buy ZEUS on your favorite exchange or swap on Uniswap"
   },
   {
     number: "2",
-    title: "Únete a la Comunidad",
-    description: "Entra a nuestro Telegram y Twitter para estar al día"
+    title: "Join the Pack",
+    description: "Join our Telegram and Twitter to stay updated"
   },
   {
     number: "3",
-    title: "Participa Activamente",
-    description: "Comparte memes, ideas y ayuda a hacer crecer la Army"
-  },
-  {
-    number: "4",
-    title: "HODL Como un Dios",
-    description: "Mantén tus ZEUS y disfruta del viaje al Olimpo"
+    title: "Be Active",
+    description: "Share memes, ideas and help grow the Army"
   }
 ];
 
@@ -183,17 +238,17 @@ const JoinUs: React.FC = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          Únete a la Zeus Army
+          Join the Zeus Army
         </SectionTitle>
-        
+
         <Subtitle
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           viewport={{ once: true }}
         >
-          Conviértete en parte de la comunidad más poderosa del crypto. 
-          El Olimpo te espera.
+          Become part of the most loyal pack in crypto.
+          The moon awaits! 🌙
         </Subtitle>
         
         <StepsContainer>
@@ -220,13 +275,13 @@ const JoinUs: React.FC = () => {
           viewport={{ once: true }}
         >
           <CTAButton
-            href="https://app.uniswap.org"
+            href="https://app.uniswap.org/swap?chain=mainnet&inputCurrency=NATIVE&outputCurrency=0x0f7dc5d02cc1e1f5ee47854d534d332a1081ccc8"
             target="_blank"
             rel="noopener noreferrer"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            Comprar ZEUS ahora
+            Buy ZEUS Now
           </CTAButton>
         </CTAContainer>
         

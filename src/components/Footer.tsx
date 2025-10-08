@@ -51,45 +51,48 @@ const FooterLinks = styled.div`
 `;
 
 const FooterLink = styled.a`
-  color: var(--color-text);
+  color: var(--color-text-light);
   font-weight: 700;
   font-family: var(--font-alt);
   transition: all 0.3s ease;
   padding: 0.5rem 1rem;
   border-radius: 20px;
-  
+
   &:hover {
     background: var(--color-primary);
-    color: var(--color-text-light);
+    color: #000;
     transform: translateY(-2px);
   }
 `;
 
 const Disclaimer = styled.p`
-  color: var(--color-text);
+  color: #2C2C2C;
   font-size: 1rem;
   margin: 2rem auto;
   max-width: 800px;
   line-height: 1.6;
   font-family: var(--font-body);
-  background: rgba(255, 229, 92, 0.2);
+  font-weight: 700;
+  background: rgba(255, 229, 92, 0.9);
   padding: 1.5rem;
   border-radius: 20px;
-  border: 2px dashed var(--color-primary);
+  border: 3px solid var(--color-primary);
   position: relative;
   z-index: 1;
 `;
 
 const Copyright = styled.p`
-  color: var(--color-text-secondary);
+  color: var(--color-text-light);
   font-size: 0.9rem;
   margin-top: 2rem;
   padding-top: 2rem;
-  border-top: 1px solid rgba(255, 215, 0, 0.1);
-  
+  border-top: 1px solid rgba(255, 215, 0, 0.3);
+  font-weight: 600;
+
   a {
     color: var(--color-primary);
-    font-weight: 600;
+    font-weight: 700;
+    text-decoration: underline;
   }
 `;
 
@@ -105,7 +108,7 @@ const Footer: React.FC = () => {
           <FooterLink href="#about">About</FooterLink>
           <FooterLink href="#mission">Mission</FooterLink>
           <FooterLink href="#roadmap">Roadmap</FooterLink>
-          <FooterLink href="#leaderboard">Leaderboard</FooterLink>
+          <FooterLink href="#leaderboard">Whales</FooterLink>
           <FooterLink href="#join">Join Pack</FooterLink>
         </FooterLinks>
         
@@ -117,8 +120,8 @@ const Footer: React.FC = () => {
         </Disclaimer>
         
         <Copyright>
-          © 2024 Zeus Army. All paws reserved. | 
-          Made with 💙 by the pack for the pack | 
+          © 2025 Zeus Army. All paws reserved. |
+          Made with 💙 by the pack for the pack |
           <a href="https://zeuscoin.vip" target="_blank" rel="noopener noreferrer"> ZEUS Official</a>
         </Copyright>
       </FooterContent>

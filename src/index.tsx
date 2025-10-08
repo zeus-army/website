@@ -3,6 +3,17 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+// Global error handlers - DISABLED to prevent blocking clicks
+// window.addEventListener('error', (event) => {
+//   console.error('Global error caught:', event.error);
+//   event.preventDefault();
+// });
+
+// window.addEventListener('unhandledrejection', (event) => {
+//   console.error('Global unhandled rejection:', event.reason);
+//   event.preventDefault();
+// });
+
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );

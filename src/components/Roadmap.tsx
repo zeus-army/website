@@ -116,7 +116,9 @@ const TimelineContent = styled.div<{ $align: 'left' | 'right' }>`
   padding: 2rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
-  
+  position: relative;
+  z-index: 2;
+
   @media (max-width: 768px) {
     padding: 2rem;
     margin-left: 4rem;
@@ -207,21 +209,20 @@ const roadmapData = [
     title: 'The Awakening',
     icon: '🐶',
     items: [
-      'Zeus Army Launch - Woof!',
-      'Community Pack Formation',
-      'First 1000 Diamond Paws',
-      'Establish the Dog House Rules'
+      'Create token-gated Telegram channels',
+      'Alpha for whales in the Telegram Whales channel',
+      'Periodic video interviews with NDhaus (creator of ZEUS)'
     ]
   },
   {
-    phase: 'Phase 2', 
+    phase: 'Phase 2',
     title: 'Fetch the Moon',
     icon: '🌙',
     items: [
-      'Viral Meme Campaigns',
-      'Strategic Partnerships',
-      'Leaderboard of Good Boys',
-      'Exclusive Treats for Holders'
+      'Launch a staking system for ZEUS',
+      'Port ZEUS to Solana and other networks with wrappers that have liquidity',
+      'Integrate ZEUS with DeFi protocols and AMMs on various networks',
+      'List ZEUS on Perps platforms like Aster and Hyperliquid'
     ]
   },
   {
@@ -229,21 +230,9 @@ const roadmapData = [
     title: 'Alpha Dog Status',
     icon: '🎆',
     items: [
-      'Zeus DAO - Community Votes',
-      'Special Army Utilities',
-      'Global Pack Expansion',
-      'Zeus NFT Collection Launch'
-    ]
-  },
-  {
-    phase: 'Phase 4',
-    title: 'Eternal Good Boy',
-    icon: '✨',
-    items: [
-      'Complete Zeus Ecosystem',
-      'Advanced DeFi Integration',
-      'Zeus Metaverse Park',
-      'Legendary Status Achieved'
+      'Launch exclusive NFTs for the community',
+      'List ZEUS on CEX exchanges',
+      'Explore models to sublicense the ZEUS brand with the official ZEUS team'
     ]
   }
 ];

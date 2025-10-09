@@ -148,53 +148,51 @@ const CTAButton = styled(motion.a)`
   pointer-events: auto !important;
   z-index: 100;
   transform: rotate(-2deg);
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  color: #000;
-  box-shadow:
-    0 8px 0 #000,
-    0 10px 30px rgba(0, 0, 0, 0.4);
-  text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.5);
 
-  &:hover {
-    transform: translateY(-5px) rotate(-2deg) scale(1.05);
+  &.primary {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #000;
     box-shadow:
-      0 12px 0 #000,
-      0 15px 40px rgba(255, 215, 0, 0.6);
+      0 8px 0 #000,
+      0 10px 30px rgba(0, 0, 0, 0.4);
+    text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.5);
+
+    &:hover {
+      transform: translateY(-5px) rotate(-2deg) scale(1.05);
+      box-shadow:
+        0 12px 0 #000,
+        0 15px 40px rgba(255, 215, 0, 0.6);
+    }
+
+    &:active {
+      transform: translateY(0) rotate(-2deg);
+      box-shadow:
+        0 4px 0 #000,
+        0 5px 20px rgba(0, 0, 0, 0.4);
+    }
   }
 
-  &:active {
-    transform: translateY(0) rotate(-2deg);
+  &.secondary {
+    background: linear-gradient(135deg, #1E90FF 0%, #00BFFF 100%);
+    color: #000;
     box-shadow:
-      0 4px 0 #000,
-      0 5px 20px rgba(0, 0, 0, 0.4);
-  }
-`;
+      0 8px 0 #000,
+      0 10px 30px rgba(0, 0, 0, 0.4);
+    text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.5);
+    transform: rotate(2deg);
 
-const SocialLinks = styled(motion.div)`
-  display: flex;
-  gap: 2rem;
-  justify-content: center;
-  margin-top: 3rem;
-`;
+    &:hover {
+      transform: translateY(-5px) rotate(2deg) scale(1.05);
+      box-shadow:
+        0 12px 0 #000,
+        0 15px 40px rgba(30, 144, 255, 0.6);
+    }
 
-const SocialLink = styled(motion.a)`
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-card);
-  border: 2px solid var(--color-primary);
-  border-radius: 50%;
-  font-size: 1.5rem;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background: var(--color-primary);
-    transform: translateY(-5px) rotate(10deg);
-
-    span {
-      filter: brightness(0) invert(1);
+    &:active {
+      transform: translateY(0) rotate(2deg);
+      box-shadow:
+        0 4px 0 #000,
+        0 5px 20px rgba(0, 0, 0, 0.4);
     }
   }
 `;
@@ -267,47 +265,23 @@ const JoinUs: React.FC = () => {
             href="https://app.uniswap.org/swap?chain=mainnet&inputCurrency=NATIVE&outputCurrency=0x0f7dc5d02cc1e1f5ee47854d534d332a1081ccc8"
             target="_blank"
             rel="noopener noreferrer"
+            className="primary"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             Buy ZEUS Now
           </CTAButton>
+          <CTAButton
+            href="https://era.guild.xyz/zeus/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="secondary"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Join Telegram
+          </CTAButton>
         </CTAContainer>
-
-        <SocialLinks
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <SocialLink
-            href="https://t.me/zeusarmy"
-            target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <span>💬</span>
-          </SocialLink>
-          <SocialLink
-            href="https://twitter.com/zeusarmy"
-            target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <span>🐦</span>
-          </SocialLink>
-          <SocialLink
-            href="https://discord.gg/zeusarmy"
-            target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <span>💜</span>
-          </SocialLink>
-        </SocialLinks>
       </Container>
     </JoinSection>
   );

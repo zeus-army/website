@@ -1,7 +1,7 @@
 // Twitter OAuth 2.0 credentials
 const TWITTER_CLIENT_ID = process.env.TWITTER_CLIENT_ID || '';
 const TWITTER_CLIENT_SECRET = process.env.TWITTER_CLIENT_SECRET || '5XMxEleWjF3i3brGvBi-drktHoYH-6hZRQP8kHW5CkACnQTc1O';
-const CALLBACK_URL = process.env.TWITTER_CALLBACK_URL || 'https://zeus-army-website-nu.vercel.app/api/auth/callback/twitter';
+const CALLBACK_URL = process.env.TWITTER_CALLBACK_URL || 'https://www.zeus.army/api/auth/callback/twitter';
 
 module.exports = async (req, res) => {
   // Enable CORS

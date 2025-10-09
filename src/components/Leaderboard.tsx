@@ -349,6 +349,7 @@ const Leaderboard: React.FC = () => {
   const [joining, setJoining] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
   const [signatureRejected, setSignatureRejected] = useState(false);
+  const [twitterFlowInitiated, setTwitterFlowInitiated] = useState(false);
 
   useEffect(() => {
     fetchLeaderboard();
@@ -359,6 +360,7 @@ const Leaderboard: React.FC = () => {
     const error = urlParams.get('error');
 
     if (twitterConnected === 'true') {
+      setTwitterFlowInitiated(true); // Prevent re-triggering
       setStatus({ type: 'success', message: 'Successfully joined Zeus Army! 🌩️' });
       // Clean URL
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -368,6 +370,7 @@ const Leaderboard: React.FC = () => {
         setStatus(null);
       }, 2000);
     } else if (error) {
+      setTwitterFlowInitiated(true); // Prevent re-triggering
       let errorMessage = 'An error occurred';
       if (error === 'already_joined') {
         errorMessage = 'You are already a Zeus Army member';
@@ -393,8 +396,9 @@ const Leaderboard: React.FC = () => {
   };
 
   const connectAndJoin = async () => {
-    // Reset signature rejected flag when user manually clicks connect
+    // Reset flags when user manually clicks connect
     setSignatureRejected(false);
+    setTwitterFlowInitiated(false);
 
     if (!active) {
       try {
@@ -469,12 +473,14 @@ const Leaderboard: React.FC = () => {
   useEffect(() => {
     const runEffect = async () => {
       try {
-        if (active && account && !joining && !signatureRejected) {
+        if (active && account && !joining && !signatureRejected && !twitterFlowInitiated) {
           // Check if user is already in leaderboard
           const isInLeaderboard = leaderboard.find(
             entry => entry.wallet_address === account?.toLowerCase()
           );
           if (!isInLeaderboard) {
+            // Mark that we're initiating the Twitter flow
+            setTwitterFlowInitiated(true);
             // Trigger signature request and Twitter OAuth
             await signAndRequestTwitter();
           }
@@ -486,7 +492,7 @@ const Leaderboard: React.FC = () => {
     };
 
     runEffect();
-  }, [active, account, leaderboard, joining, signatureRejected, signAndRequestTwitter]);
+  }, [active, account, leaderboard, joining, signatureRejected, twitterFlowInitiated, signAndRequestTwitter]);
 
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;

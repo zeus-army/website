@@ -204,7 +204,7 @@ const TableHeader = styled.div`
   background: var(--gradient-rainbow);
   padding: 1.5rem;
   display: grid;
-  grid-template-columns: 80px 1fr 200px 200px;
+  grid-template-columns: 120px 1fr 200px;
   gap: 1rem;
   color: var(--color-text-light);
   font-weight: 700;
@@ -213,16 +213,18 @@ const TableHeader = styled.div`
   letter-spacing: 0.1em;
   font-size: 1.1rem;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  text-align: center;
 `;
 
 const TableRow = styled(motion.div)<{ $rank: number }>`
   padding: 1.5rem;
   display: grid;
-  grid-template-columns: 80px 1fr 200px 200px;
+  grid-template-columns: 120px 1fr 200px;
   gap: 1rem;
   align-items: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   background: rgba(255, 255, 255, 0.02);
+  text-align: center;
 
   ${props => props.$rank <= 3 && `
     background: linear-gradient(90deg,
@@ -252,13 +254,8 @@ const Rank = styled.div<{ $rank: number }>`
   `}
 `;
 
-const WalletInfo = styled.div`
-  display: flex;
-  align-items: center;
-`;
-
 const Balance = styled.div`
-  text-align: right;
+  text-align: center;
   font-size: 1.4rem;
   font-weight: 700;
   font-family: var(--font-display);
@@ -314,21 +311,9 @@ const TwitterLink = styled.a`
   font-family: var(--font-alt) !important;
   display: flex !important;
   align-items: center !important;
+  justify-content: center !important;
   gap: 0.5rem !important;
   text-decoration: underline !important;
-  cursor: pointer !important;
-  pointer-events: auto !important;
-  position: relative !important;
-  z-index: 10 !important;
-`;
-
-const WalletLink = styled.a`
-  font-family: monospace !important;
-  color: var(--color-primary) !important;
-  opacity: 0.9 !important;
-  font-size: 0.9rem !important;
-  text-decoration: underline !important;
-  display: inline-block !important;
   cursor: pointer !important;
   pointer-events: auto !important;
   position: relative !important;
@@ -494,10 +479,6 @@ const Leaderboard: React.FC = () => {
     runEffect();
   }, [active, account, leaderboard, joining, signatureRejected, twitterFlowInitiated, signAndRequestTwitter]);
 
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
-
   const formatSupplyPercentage = (balance: string) => {
     const TOTAL_SUPPLY = 420.69e12; // 420.69 trillion
     const num = parseFloat(balance);
@@ -566,7 +547,6 @@ const Leaderboard: React.FC = () => {
         <LeaderboardTable>
           <TableHeader>
             <div>Rank</div>
-            <div>Wallet</div>
             <div>Twitter</div>
             <div>% of Supply</div>
           </TableHeader>
@@ -578,22 +558,6 @@ const Leaderboard: React.FC = () => {
               style={{ pointerEvents: 'auto' }}
             >
               <Rank $rank={index + 1}>{index + 1}</Rank>
-              <WalletInfo>
-                <WalletLink
-                  href={`https://app.zerion.io/tokens/ZEUS-b6795871-6375-49df-9aff-7f5ab958ecd1?address=${entry.wallet_address}&inputChain=ethereum`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const url = `https://app.zerion.io/tokens/ZEUS-b6795871-6375-49df-9aff-7f5ab958ecd1?address=${entry.wallet_address}&inputChain=ethereum`;
-                    console.log('Opening wallet link:', url);
-                    window.open(url, '_blank', 'noopener,noreferrer');
-                  }}
-                >
-                  {formatAddress(entry.wallet_address)}
-                </WalletLink>
-              </WalletInfo>
               <div>
                 {entry.twitter_handle && (
                   <TwitterLink

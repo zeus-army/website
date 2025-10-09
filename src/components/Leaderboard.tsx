@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { useWeb3React } from '@web3-react/core';
+import { useAccount, useSignMessage } from 'wagmi';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 import axios from 'axios';
-import { injected } from '../utils/connectors';
 
 const LeaderboardSection = styled.section`
   padding: 5rem 2rem;
@@ -191,6 +191,19 @@ const JoinButton = styled(motion.button)`
   }
 `;
 
+const RainbowButtonWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+
+  /* Override RainbowKit button styles to match design */
+  button {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    z-index: 100 !important;
+  }
+`;
+
 const LeaderboardTable = styled.div`
   background: rgba(13, 14, 35, 0.9);
   border-radius: 30px;
@@ -329,12 +342,11 @@ interface LeaderboardEntry {
 }
 
 const Leaderboard: React.FC = () => {
-  const { active, account, activate, library, deactivate } = useWeb3React();
+  const { address, isConnected } = useAccount();
+  const { signMessageAsync } = useSignMessage();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [joining, setJoining] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
-  const [signatureRejected, setSignatureRejected] = useState(false);
-  const [twitterFlowInitiated, setTwitterFlowInitiated] = useState(false);
 
   useEffect(() => {
     fetchLeaderboard();
@@ -345,17 +357,13 @@ const Leaderboard: React.FC = () => {
     const error = urlParams.get('error');
 
     if (twitterConnected === 'true') {
-      setTwitterFlowInitiated(true); // Prevent re-triggering
       setStatus({ type: 'success', message: 'Successfully joined Zeus Army! 🌩️' });
-      // Clean URL
       window.history.replaceState({}, document.title, window.location.pathname);
-      // Refresh leaderboard
       setTimeout(() => {
         fetchLeaderboard();
         setStatus(null);
       }, 2000);
     } else if (error) {
-      setTwitterFlowInitiated(true); // Prevent re-triggering
       let errorMessage = 'An error occurred';
       if (error === 'already_joined') {
         errorMessage = 'You are already a Zeus Army member';
@@ -365,7 +373,6 @@ const Leaderboard: React.FC = () => {
         errorMessage = 'Signature mismatch. Please try again.';
       }
       setStatus({ type: 'error', message: errorMessage });
-      // Clean URL
       window.history.replaceState({}, document.title, window.location.pathname);
       setTimeout(() => setStatus(null), 5000);
     }
@@ -380,104 +387,43 @@ const Leaderboard: React.FC = () => {
     }
   };
 
-  const connectAndJoin = async () => {
-    // Reset flags when user manually clicks connect
-    setSignatureRejected(false);
-    setTwitterFlowInitiated(false);
+  const signAndJoin = async () => {
+    if (!address || !isConnected) return;
 
-    if (!active) {
-      try {
-        setStatus({ type: 'info', message: 'Connecting wallet...' });
-        await activate(injected);
-      } catch (error: any) {
-        console.error('Wallet connection error:', error);
-        const errorMessage = String(error?.message || 'Failed to connect wallet');
-        setStatus({ type: 'error', message: errorMessage });
-        return;
+    setJoining(true);
+    setStatus({ type: 'info', message: 'Please sign the message in your wallet...' });
+
+    try {
+      const timestamp = Date.now();
+      const message = `Welcome to Zeus Army!\n\nBy signing this message, you join the elite ranks of ZEUS holders.\n\nWallet: ${address}\nTimestamp: ${timestamp}`;
+
+      const signature = await signMessageAsync({ message });
+
+      setJoining(false);
+      setStatus({ type: 'info', message: 'Redirecting to Twitter...' });
+
+      // Redirect to Twitter OAuth
+      const authResponse = await axios.get('/api/auth/twitter', {
+        params: {
+          address,
+          signature,
+          timestamp
+        }
+      });
+
+      if (authResponse.data.success) {
+        // Redirect to Twitter for authentication
+        window.location.href = authResponse.data.authUrl;
+      } else {
+        throw new Error('Failed to initiate Twitter authentication');
       }
-    } else {
-      // If already active, trigger signature
-      signAndRequestTwitter();
+
+    } catch (error: any) {
+      console.error('Signature error:', error);
+      setStatus({ type: 'error', message: 'Signature rejected' });
+      setJoining(false);
     }
   };
-
-  const signAndRequestTwitter = useCallback(async () => {
-    try {
-      if (!account || !library) return;
-
-      setJoining(true);
-      setStatus({ type: 'info', message: 'Please sign the message in your wallet...' });
-
-      try {
-        const timestamp = Date.now();
-        const message = `Welcome to Zeus Army!\n\nBy signing this message, you join the elite ranks of ZEUS holders.\n\nWallet: ${account}\nTimestamp: ${timestamp}`;
-
-        const signer = library.getSigner();
-        const signature = await signer.signMessage(message);
-
-        setJoining(false);
-        setStatus({ type: 'info', message: 'Redirecting to Twitter...' });
-
-        // Redirect to Twitter OAuth
-        const authResponse = await axios.get('/api/auth/twitter', {
-          params: {
-            address: account,
-            signature,
-            timestamp
-          }
-        });
-
-        if (authResponse.data.success) {
-          // Redirect to Twitter for authentication
-          window.location.href = authResponse.data.authUrl;
-        } else {
-          throw new Error('Failed to initiate Twitter authentication');
-        }
-
-      } catch (error: any) {
-        console.error('Signature error:', error);
-        // User rejected signature or error occurred - disconnect wallet
-        setSignatureRejected(true);
-        // Don't show error message, just silently reset state
-        setStatus(null);
-        setJoining(false);
-        // Disconnect wallet
-        deactivate();
-      }
-    } catch (outerError: any) {
-      console.error('Outer error in signAndRequestTwitter:', outerError);
-      // Failsafe: ensure state is reset
-      setSignatureRejected(true);
-      setJoining(false);
-      setStatus(null);
-      // Disconnect wallet
-      deactivate();
-    }
-  }, [account, library, deactivate]);
-
-  useEffect(() => {
-    const runEffect = async () => {
-      try {
-        if (active && account && !joining && !signatureRejected && !twitterFlowInitiated) {
-          // Check if user is already in leaderboard
-          const isInLeaderboard = leaderboard.find(
-            entry => entry.wallet_address === account?.toLowerCase()
-          );
-          if (!isInLeaderboard) {
-            // Mark that we're initiating the Twitter flow
-            setTwitterFlowInitiated(true);
-            // Trigger signature request and Twitter OAuth
-            await signAndRequestTwitter();
-          }
-        }
-      } catch (error) {
-        console.error('Error in useEffect:', error);
-        // Silently handle error
-      }
-    };
-
-    runEffect();
-  }, [active, account, leaderboard, joining, signatureRejected, twitterFlowInitiated, signAndRequestTwitter]);
 
   const formatSupplyPercentage = (balance: string) => {
     const TOTAL_SUPPLY = 420.69e12; // 420.69 trillion
@@ -495,7 +441,6 @@ const Leaderboard: React.FC = () => {
     <LeaderboardSection id="leaderboard">
       <Container>
         <SectionTitle
-          data-text="WHALE LEADERBOARD"
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -504,7 +449,7 @@ const Leaderboard: React.FC = () => {
           WHALE LEADERBOARD 🐋
         </SectionTitle>
 
-        {!leaderboard.find(entry => entry.wallet_address === account?.toLowerCase()) && (
+        {!leaderboard.find(entry => entry.wallet_address === address?.toLowerCase()) && (
           <JoinContainer
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -528,18 +473,36 @@ const Leaderboard: React.FC = () => {
                 <li>Show the world you're not just barking - you're HOLDING! 🚀</li>
               </ul>
             </JoinDescription>
-            <JoinButton
-              onClick={connectAndJoin}
-              disabled={joining}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {joining ? <LoadingSpinner /> : active ? 'Sign & Join' : 'Connect Wallet'}
-            </JoinButton>
-            {status && (
-              <StatusMessage $type={status.type}>
-                {status.message}
-              </StatusMessage>
+            {isConnected ? (
+              <>
+                <JoinButton
+                  onClick={signAndJoin}
+                  disabled={joining}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {joining ? <LoadingSpinner /> : 'Sign & Join'}
+                </JoinButton>
+                {status && (
+                  <StatusMessage $type={status.type}>
+                    {status.message}
+                  </StatusMessage>
+                )}
+              </>
+            ) : (
+              <RainbowButtonWrapper>
+                <ConnectButton.Custom>
+                  {({ openConnectModal }) => (
+                    <JoinButton
+                      onClick={openConnectModal}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      Connect Wallet
+                    </JoinButton>
+                  )}
+                </ConnectButton.Custom>
+              </RainbowButtonWrapper>
             )}
           </JoinContainer>
         )}

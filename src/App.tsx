@@ -1,7 +1,10 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
-import { Web3ReactProvider } from '@web3-react/core';
-import { ethers } from 'ethers';
+import { WagmiProvider } from 'wagmi';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import '@rainbow-me/rainbowkit/styles.css';
+import { config } from './config/wagmi';
 import { GlobalStyles } from './styles/GlobalStyles';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -11,6 +14,8 @@ import Leaderboard from './components/Leaderboard';
 import Mission from './components/Mission';
 import JoinUs from './components/JoinUs';
 import Footer from './components/Footer';
+
+const queryClient = new QueryClient();
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -46,29 +51,29 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 }
 
-function getLibrary(provider: any) {
-  return new ethers.providers.Web3Provider(provider);
-}
-
 function App() {
   return (
     <ErrorBoundary>
-      <Web3ReactProvider getLibrary={getLibrary}>
-        <Router>
-          <GlobalStyles />
-          <div className="lightning-bg"></div>
-          <Navbar />
-          <main>
-            <Hero />
-            <AboutUs />
-            <Mission />
-            <Roadmap />
-            <Leaderboard />
-            <JoinUs />
-          </main>
-          <Footer />
-        </Router>
-      </Web3ReactProvider>
+      <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider>
+            <Router>
+              <GlobalStyles />
+              <div className="lightning-bg"></div>
+              <Navbar />
+              <main>
+                <Hero />
+                <AboutUs />
+                <Mission />
+                <Roadmap />
+                <Leaderboard />
+                <JoinUs />
+              </main>
+              <Footer />
+            </Router>
+          </RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
     </ErrorBoundary>
   );
 }

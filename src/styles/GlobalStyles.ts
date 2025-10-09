@@ -124,12 +124,13 @@ export const GlobalStyles = createGlobalStyle`
     }
   }
 
-  h2 {
+  main h2,
+  section h2 {
     font-size: clamp(2.5rem, 6vw, 4rem);
     font-weight: 900;
     text-transform: uppercase;
     color: #FFFFFF;
-    text-shadow: 
+    text-shadow:
       0 0 30px rgba(255, 221, 89, 0.8),
       0 0 60px rgba(255, 107, 107, 0.6),
       0 0 90px rgba(165, 94, 234, 0.4),
@@ -141,12 +142,13 @@ export const GlobalStyles = createGlobalStyle`
     letter-spacing: 0.05em;
   }
 
-  h3 {
+  main h3,
+  section h3 {
     font-size: clamp(1.8rem, 4vw, 2.5rem);
     font-weight: 800;
     text-transform: uppercase;
     color: var(--color-text-light);
-    text-shadow: 
+    text-shadow:
       0 0 20px rgba(75, 183, 73, 0.7),
       2px 2px 0px #000000,
       3px 3px 5px rgba(0, 0, 0, 0.5);

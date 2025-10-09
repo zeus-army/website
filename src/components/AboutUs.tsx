@@ -129,14 +129,21 @@ const ProfileImage = styled.div`
   position: relative;
   z-index: 1;
   box-shadow: 0 0 50px rgba(165, 94, 234, 0.5);
-  
+  overflow: hidden;
+
   &:hover {
     animation: bounce 0.5s ease;
   }
-  
+
   @keyframes bounce {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.1); }
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 `;
 
@@ -152,6 +159,15 @@ const ProfileName = styled.h3`
   font-family: var(--font-display);
   text-transform: uppercase;
   text-shadow: 2px 2px 4px rgba(30, 144, 255, 0.3);
+`;
+
+const ProfileSubtitle = styled.p`
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: -0.3rem;
+  margin-bottom: 0.5rem;
+  font-style: italic;
+  opacity: 0.8;
 `;
 
 const ProfileENS = styled.p`
@@ -178,11 +194,12 @@ const ProfileStats = styled.div`
 
 const Stat = styled.div`
   text-align: center;
-  
+
   .label {
     font-size: 0.8rem;
-    color: var(--color-text-light);
-    opacity: 0.8;
+    color: #1a1a2e;
+    font-weight: 700;
+    opacity: 1;
     text-transform: uppercase;
     letter-spacing: 0.1em;
   }
@@ -202,25 +219,26 @@ const Stat = styled.div`
 
 const teamMembers = [
   {
-    nickname: 'Dog Father',
-    ens: 'dogfather.eth',
-    zeusPercentage: '5.2%',
-    avatar: '👑',
-    role: 'Founder & Chief Woof'
+    nickname: 'Alberto Gómez Toribio',
+    subtitle: 'and his team',
+    ens: 'gotoalberto.eth',
+    zeusPercentage: '1.15%',
+    avatar: '/images/gotoalberto.jpg',
+    role: 'Strategy & Dev'
   },
   {
-    nickname: 'Bone Master',
-    ens: 'bonemaster.eth',
-    zeusPercentage: '3.8%',
-    avatar: '🦴',
-    role: 'Strategy & Treats'
+    nickname: 'We Are Hiring',
+    ens: 'apply@zeus.army',
+    zeusPercentage: 'TBD',
+    avatar: '🚀',
+    role: 'Frontend Developer'
   },
   {
-    nickname: 'Paw Captain',
-    ens: 'pawcaptain.eth',
-    zeusPercentage: '2.9%',
-    avatar: '🐾',
-    role: 'Community Pack Leader'
+    nickname: 'We Are Hiring',
+    ens: 'apply@zeus.army',
+    zeusPercentage: 'TBD',
+    avatar: '📈',
+    role: 'Growth Lead'
   }
 ];
 
@@ -263,7 +281,11 @@ const AboutUs: React.FC = () => {
           viewport={{ once: true }}
         >
           We are Pepe's best friends, leading the most loyal pack in the memecoin universe!
-          Zeus Army is where diamond paws meet legendary gains. Woof! 🚀🐾
+          Unlike others, we don't hide behind anonymity - we step forward, take responsibility,
+          and prove our commitment to ZEUS with our own bags. Zeus Army is where diamond paws
+          meet legendary gains and real accountability. We have no affiliation with the official
+          ZEUS team, do not represent ZEUS CC8 INC., and hold no formal relationship or position
+          with them. Woof! 🚀🐾
         </motion.p>
         
         <TeamGrid>
@@ -277,11 +299,16 @@ const AboutUs: React.FC = () => {
               whileHover={{ scale: 1.02 }}
             >
               <ProfileImage>
-                <span>{member.avatar}</span>
+                {member.avatar.startsWith('/') || member.avatar.startsWith('http') ? (
+                  <img src={member.avatar} alt={member.nickname} />
+                ) : (
+                  <span>{member.avatar}</span>
+                )}
               </ProfileImage>
               
               <ProfileContent>
                 <ProfileName>{member.nickname}</ProfileName>
+                {member.subtitle && <ProfileSubtitle>{member.subtitle}</ProfileSubtitle>}
                 <ProfileENS>{member.ens}</ProfileENS>
                 
                 <ProfileStats>

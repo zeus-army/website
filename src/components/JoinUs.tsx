@@ -126,43 +126,47 @@ const StepDescription = styled.p`
 
 const CTAContainer = styled(motion.div)`
   margin-top: 4rem;
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
 `;
 
 const CTAButton = styled(motion.a)`
-  display: inline-block;
-  padding: 1.5rem 4rem;
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  color: #000;
+  padding: 1.5rem 3.5rem;
   border-radius: 60px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.15em;
-  font-size: 1.5rem;
-  font-family: var(--font-display);
-  border: 5px solid #000;
-  box-shadow:
-    0 10px 0 #000,
-    0 12px 35px rgba(0, 0, 0, 0.4);
-  text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.5);
   transition: all 0.3s ease;
-  transform: rotate(-1deg);
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  border: 5px solid #000;
+  position: relative;
   cursor: pointer !important;
   pointer-events: auto !important;
-  position: relative;
   z-index: 100;
+  transform: rotate(-2deg);
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #000;
+  box-shadow:
+    0 8px 0 #000,
+    0 10px 30px rgba(0, 0, 0, 0.4);
+  text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.5);
 
   &:hover {
-    transform: translateY(-8px) rotate(-1deg) scale(1.08);
+    transform: translateY(-5px) rotate(-2deg) scale(1.05);
     box-shadow:
-      0 15px 0 #000,
-      0 18px 50px rgba(255, 215, 0, 0.7);
+      0 12px 0 #000,
+      0 15px 40px rgba(255, 215, 0, 0.6);
   }
 
   &:active {
-    transform: translateY(0) rotate(-1deg);
+    transform: translateY(0) rotate(-2deg);
     box-shadow:
-      0 5px 0 #000,
-      0 7px 25px rgba(0, 0, 0, 0.4);
+      0 4px 0 #000,
+      0 5px 20px rgba(0, 0, 0, 0.4);
   }
 `;
 
@@ -174,39 +178,24 @@ const SocialLinks = styled(motion.div)`
 `;
 
 const SocialLink = styled(motion.a)`
-  width: 70px;
-  height: 70px;
+  width: 60px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1E90FF 0%, #00BFFF 100%);
-  border: 4px solid #000;
+  background: var(--color-card);
+  border: 2px solid var(--color-primary);
   border-radius: 50%;
-  font-size: 2rem;
-  box-shadow:
-    0 6px 0 #000,
-    0 8px 20px rgba(0, 0, 0, 0.3);
+  font-size: 1.5rem;
   transition: all 0.3s ease;
-  transform: rotate(0deg);
-  cursor: pointer;
 
   &:hover {
-    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-    transform: translateY(-6px) rotate(15deg) scale(1.15);
-    box-shadow:
-      0 10px 0 #000,
-      0 12px 30px rgba(30, 144, 255, 0.5);
-  }
+    background: var(--color-primary);
+    transform: translateY(-5px) rotate(10deg);
 
-  &:active {
-    transform: translateY(0) rotate(5deg);
-    box-shadow:
-      0 3px 0 #000,
-      0 5px 15px rgba(0, 0, 0, 0.3);
-  }
-
-  span {
-    filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.3));
+    span {
+      filter: brightness(0) invert(1);
+    }
   }
 `;
 
@@ -218,8 +207,8 @@ const steps = [
   },
   {
     number: "2",
-    title: "Join the Pack",
-    description: "Join our Telegram and Twitter to stay updated"
+    title: "Join the Telegram Channel",
+    description: "Connect with the community and stay updated"
   },
   {
     number: "3",
@@ -284,7 +273,7 @@ const JoinUs: React.FC = () => {
             Buy ZEUS Now
           </CTAButton>
         </CTAContainer>
-        
+
         <SocialLinks
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}

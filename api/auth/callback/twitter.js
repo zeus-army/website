@@ -1,5 +1,7 @@
 const { kv } = require('@vercel/kv');
-const { ethers } = require('ethers');
+const { createPublicClient, http, getContract, parseAbi } = require('viem');
+const { mainnet } = require('viem/chains');
+const { verifyMessage } = require('viem');
 
 const TWITTER_CLIENT_ID = process.env.TWITTER_CLIENT_ID || '';
 const TWITTER_CLIENT_SECRET = process.env.TWITTER_CLIENT_SECRET || '[TWITTER_SECRET_REMOVED]';
@@ -8,11 +10,11 @@ const ETHEREUM_RPC_URL = process.env.ETHEREUM_RPC_URL || 'https://eth.llamarpc.c
 const ZEUS_TOKEN_ADDRESS = '0x0f7dc5d02cc1e1f5ee47854d534d332a1081ccc8';
 
 // Minimal ERC20 ABI for balanceOf
-const ERC20_ABI = [
+const ERC20_ABI = parseAbi([
   'function balanceOf(address owner) view returns (uint256)',
   'function decimals() view returns (uint8)',
   'function totalSupply() view returns (uint256)'
-];
+]);
 
 module.exports = async (req, res) => {
   // Enable CORS
@@ -45,15 +47,19 @@ module.exports = async (req, res) => {
     // Verify signature
     const message = `Welcome to Zeus Army!\n\nBy signing this message, you join the elite ranks of ZEUS holders.\n\nWallet: ${address}\nTimestamp: ${timestamp}`;
 
-    let recoveredAddress;
+    let isValid;
     try {
-      recoveredAddress = ethers.utils.verifyMessage(message, signature);
+      isValid = await verifyMessage({
+        address: address,
+        message: message,
+        signature: signature
+      });
     } catch (error) {
       console.error('Signature verification error:', error);
       return res.redirect('/?error=invalid_signature');
     }
 
-    if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
+    if (!isValid) {
       return res.redirect('/?error=signature_mismatch');
     }
 
@@ -98,18 +104,26 @@ module.exports = async (req, res) => {
     const twitterHandle = `@${userData.data.username}`;
 
     // Get ZEUS balance
-    const provider = new ethers.providers.JsonRpcProvider(ETHEREUM_RPC_URL);
-    const tokenContract = new ethers.Contract(ZEUS_TOKEN_ADDRESS, ERC20_ABI, provider);
+    const client = createPublicClient({
+      chain: mainnet,
+      transport: http(ETHEREUM_RPC_URL)
+    });
+
+    const tokenContract = getContract({
+      address: ZEUS_TOKEN_ADDRESS,
+      abi: ERC20_ABI,
+      client: client
+    });
 
     const [balance, decimals, totalSupply] = await Promise.all([
-      tokenContract.balanceOf(address),
-      tokenContract.decimals(),
-      tokenContract.totalSupply()
+      tokenContract.read.balanceOf([address]),
+      tokenContract.read.decimals(),
+      tokenContract.read.totalSupply()
     ]);
 
-    const balanceFormatted = ethers.utils.formatUnits(balance, decimals);
-    const totalSupplyFormatted = ethers.utils.formatUnits(totalSupply, decimals);
-    const supplyPercentage = ((parseFloat(balanceFormatted) / parseFloat(totalSupplyFormatted)) * 100).toFixed(6);
+    const balanceFormatted = Number(balance) / Math.pow(10, Number(decimals));
+    const totalSupplyFormatted = Number(totalSupply) / Math.pow(10, Number(decimals));
+    const supplyPercentage = ((balanceFormatted / totalSupplyFormatted) * 100).toFixed(6);
 
     // Check if wallet already exists
     const existingWallet = await kv.get(`wallet:${address.toLowerCase()}`);
@@ -122,7 +136,7 @@ module.exports = async (req, res) => {
     const walletData = {
       wallet_address: address.toLowerCase(),
       twitter_handle: twitterHandle,
-      zeus_balance: balanceFormatted,
+      zeus_balance: balanceFormatted.toString(),
       supply_percentage: `${supplyPercentage}%`,
       timestamp: Date.now()
     };

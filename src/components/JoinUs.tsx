@@ -272,7 +272,7 @@ const JoinUs: React.FC = () => {
             Buy ZEUS Now
           </CTAButton>
           <CTAButton
-            href="https://era.guild.xyz/zeus/"
+            href="https://t.me/+_bDPYITdX8I2NmQ0"
             target="_blank"
             rel="noopener noreferrer"
             className="secondary"

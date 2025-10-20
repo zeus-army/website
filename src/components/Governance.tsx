@@ -574,6 +574,20 @@ const LoadingSpinner = styled.div`
   }
 `;
 
+const BalanceLoadingSpinner = styled.div`
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  border: 4px solid rgba(255, 215, 0, 0.2);
+  border-radius: 50%;
+  border-top-color: var(--color-primary);
+  animation: spin 1s ease-in-out infinite;
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+`;
+
 const Governance: React.FC = () => {
   const { address, isConnected } = useAccount();
   const { disconnect } = useDisconnect();
@@ -596,7 +610,7 @@ const Governance: React.FC = () => {
   });
 
   // Read ZEUS balance
-  const { data: zeusBalance, refetch: refetchZeus } = useReadContract({
+  const { data: zeusBalance, refetch: refetchZeus, isLoading: isLoadingZeusBalance } = useReadContract({
     address: ZEUS_TOKEN_ADDRESS,
     abi: ERC20_ABI,
     functionName: 'balanceOf',
@@ -604,7 +618,7 @@ const Governance: React.FC = () => {
   });
 
   // Read wZEUS balance
-  const { data: wzeusBalance, refetch: refetchWzeus } = useReadContract({
+  const { data: wzeusBalance, refetch: refetchWzeus, isLoading: isLoadingWzeusBalance } = useReadContract({
     address: WZEUS_TOKEN_ADDRESS,
     abi: WZEUS_ABI,
     functionName: 'balanceOf',
@@ -917,11 +931,15 @@ const Governance: React.FC = () => {
               <BalanceCard>
                 <BalanceItem>
                   <BalanceLabel>Your ZEUS Balance</BalanceLabel>
-                  <BalanceAmount>{formatBalance(zeusBalance, zeusDecimals)}</BalanceAmount>
+                  <BalanceAmount>
+                    {isLoadingZeusBalance ? <BalanceLoadingSpinner /> : formatBalance(zeusBalance, zeusDecimals)}
+                  </BalanceAmount>
                 </BalanceItem>
                 <BalanceItem>
                   <BalanceLabel>Your wZEUS Balance</BalanceLabel>
-                  <BalanceAmount>{formatBalance(wzeusBalance, wzeusDecimals)}</BalanceAmount>
+                  <BalanceAmount>
+                    {isLoadingWzeusBalance ? <BalanceLoadingSpinner /> : formatBalance(wzeusBalance, wzeusDecimals)}
+                  </BalanceAmount>
                 </BalanceItem>
               </BalanceCard>
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useDisconnect } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { parseEther, formatUnits } from 'viem';
 
@@ -415,6 +415,40 @@ const UnwrapButton = styled(ActionButton)`
   background: linear-gradient(135deg, #1E90FF 0%, #4169E1 100%);
 `;
 
+const DisconnectButton = styled(motion.button)`
+  background: rgba(255, 0, 0, 0.1);
+  color: #ff6b6b;
+  padding: 0.8rem 2rem;
+  border-radius: 60px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-family: var(--font-alt);
+  border: 2px solid rgba(255, 0, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(255, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  margin-top: 1.5rem;
+  width: 100%;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 0, 0, 0.2);
+    border-color: rgba(255, 0, 0, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 0, 0, 0.3);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
 const ConnectButtonWrapper = styled.div`
   display: flex;
   justify-content: center;
@@ -485,6 +519,7 @@ const LoadingSpinner = styled.div`
 
 const Governance: React.FC = () => {
   const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
   const [wrapAmount, setWrapAmount] = useState('');
   const [unwrapAmount, setUnwrapAmount] = useState('');
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
@@ -831,6 +866,14 @@ const Governance: React.FC = () => {
                 <br />
                 To unwrap: Enter the amount of wZEUS and click "Unwrap wZEUS". It's that simple!
               </InfoBox>
+
+              <DisconnectButton
+                onClick={() => disconnect()}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Disconnect Wallet
+              </DisconnectButton>
             </WrapContainer>
           )}
         </SubSection>

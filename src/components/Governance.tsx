@@ -9,6 +9,9 @@ import { parseEther, formatUnits } from 'viem';
 const ZEUS_TOKEN_ADDRESS = '0x0f7dc5d02cc1e1f5ee47854d534d332a1081ccc8';
 const WZEUS_TOKEN_ADDRESS = '0xA56B06AA7Bfa6cbaD8A0b5161ca052d86a5D88E9';
 
+// 10^18 for wei conversion (18 decimals)
+const WEI_DIVISOR = BigInt("1000000000000000000");
+
 // ABIs
 const ERC20_ABI = [
   {
@@ -643,19 +646,57 @@ const Governance: React.FC = () => {
 
   const formatBalance = (balance: bigint | undefined) => {
     if (!balance) return '0';
-    const balanceStr = formatUnits(balance, 18);
-    // For very large numbers, use BigInt math to avoid precision loss
-    const [integerPart, decimalPart = ''] = balanceStr.split('.');
-    const formattedInteger = BigInt(integerPart).toLocaleString('en-US');
-    const decimals = decimalPart.slice(0, 2);
-    return decimals ? `${formattedInteger}.${decimals}` : formattedInteger;
+
+    // Convert from wei (18 decimals) to token amount
+    const tokenAmount = balance / WEI_DIVISOR;
+    const remainder = balance % WEI_DIVISOR;
+
+    // Convert to number for comparison (safe for up to 15 significant digits)
+    const tokenAmountNum = Number(tokenAmount);
+
+    // Format with T, B, M, K suffixes for large numbers
+    if (tokenAmountNum >= 1_000_000_000_000) {
+      // Trillions
+      const trillions = tokenAmountNum / 1_000_000_000_000;
+      return `${trillions.toFixed(2)}T`;
+    } else if (tokenAmountNum >= 1_000_000_000) {
+      // Billions
+      const billions = tokenAmountNum / 1_000_000_000;
+      return `${billions.toFixed(2)}B`;
+    } else if (tokenAmountNum >= 1_000_000) {
+      // Millions
+      const millions = tokenAmountNum / 1_000_000;
+      return `${millions.toFixed(2)}M`;
+    } else if (tokenAmountNum >= 1_000) {
+      // Thousands
+      const thousands = tokenAmountNum / 1_000;
+      return `${thousands.toFixed(2)}K`;
+    } else {
+      // Less than 1000, show with 2 decimals
+      const remainderStr = remainder.toString().padStart(18, '0');
+      const decimals = remainderStr.slice(0, 2);
+      return decimals !== '00' ? `${tokenAmount.toLocaleString('en-US')}.${decimals}` : tokenAmount.toLocaleString('en-US');
+    }
   };
 
   const handleSetMax = () => {
-    if (mode === 'wrap' && zeusBalance) {
-      setAmount(formatUnits(zeusBalance, 18));
-    } else if (mode === 'unwrap' && wzeusBalance) {
-      setAmount(formatUnits(wzeusBalance, 18));
+    const balance = mode === 'wrap' ? zeusBalance : wzeusBalance;
+    if (!balance) return;
+
+    // Convert from wei to token amount without losing precision
+    const integerPart = balance / WEI_DIVISOR;
+    const remainder = balance % WEI_DIVISOR;
+
+    // Build the full decimal string
+    const remainderStr = remainder.toString().padStart(18, '0');
+    // Remove trailing zeros from remainder
+    const trimmedRemainder = remainderStr.replace(/0+$/, '');
+
+    // Set the amount as a string with full precision
+    if (trimmedRemainder) {
+      setAmount(`${integerPart}.${trimmedRemainder}`);
+    } else {
+      setAmount(integerPart.toString());
     }
   };
 
@@ -738,7 +779,13 @@ const Governance: React.FC = () => {
     }
   };
 
-  const isProcessing = isApproving || isApproveTxLoading || isWrapping || isWrapTxLoading || isUnwrapping || isUnwrapTxLoading;
+  // Only consider transaction loading states when we have a valid hash
+  const isProcessing = isApproving ||
+                      (approveHash && isApproveTxLoading) ||
+                      isWrapping ||
+                      (wrapHash && isWrapTxLoading) ||
+                      isUnwrapping ||
+                      (unwrapHash && isUnwrapTxLoading);
 
   return (
     <GovernanceSection id="governance">

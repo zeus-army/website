@@ -3,14 +3,15 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useDisconnect } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { parseEther, formatUnits } from 'viem';
+import { parseUnits, formatUnits } from 'viem';
 
 // Contract addresses
 const ZEUS_TOKEN_ADDRESS = '0x0f7dc5d02cc1e1f5ee47854d534d332a1081ccc8';
 const WZEUS_TOKEN_ADDRESS = '0xA56B06AA7Bfa6cbaD8A0b5161ca052d86a5D88E9';
 
-// 10^18 for wei conversion (18 decimals)
-const WEI_DIVISOR = BigInt("1000000000000000000");
+// ZEUS token uses 6 decimals (not 18!)
+const TOKEN_DECIMALS = 6;
+const TOKEN_DIVISOR = BigInt("1000000");
 
 // ABIs
 const ERC20_ABI = [
@@ -647,13 +648,13 @@ const Governance: React.FC = () => {
   const formatBalance = (balance: bigint | undefined) => {
     if (!balance) return '0';
 
-    // Convert from wei (18 decimals) to token amount
-    const tokenAmount = balance / WEI_DIVISOR;
-    const remainder = balance % WEI_DIVISOR;
+    // Convert from token's base units (6 decimals for ZEUS) to token amount
+    const tokenAmount = balance / TOKEN_DIVISOR;
+    const remainder = balance % TOKEN_DIVISOR;
 
     // DEBUG: Log values to console
     console.log('formatBalance DEBUG:', {
-      balanceWei: balance.toString(),
+      balanceRaw: balance.toString(),
       tokenAmount: tokenAmount.toString(),
       tokenAmountNum: Number(tokenAmount)
     });
@@ -690,21 +691,9 @@ const Governance: React.FC = () => {
     const balance = mode === 'wrap' ? zeusBalance : wzeusBalance;
     if (!balance) return;
 
-    // Convert from wei to token amount without losing precision
-    const integerPart = balance / WEI_DIVISOR;
-    const remainder = balance % WEI_DIVISOR;
-
-    // Build the full decimal string
-    const remainderStr = remainder.toString().padStart(18, '0');
-    // Remove trailing zeros from remainder
-    const trimmedRemainder = remainderStr.replace(/0+$/, '');
-
-    // Set the amount as a string with full precision
-    if (trimmedRemainder) {
-      setAmount(`${integerPart}.${trimmedRemainder}`);
-    } else {
-      setAmount(integerPart.toString());
-    }
+    // Convert from token base units to token amount with full precision
+    const amountStr = formatUnits(balance, TOKEN_DECIMALS);
+    setAmount(amountStr);
   };
 
   const handleApprove = async () => {
@@ -714,12 +703,12 @@ const Governance: React.FC = () => {
     }
 
     try {
-      const amountWei = parseEther(amount);
+      const amountInBaseUnits = parseUnits(amount, TOKEN_DECIMALS);
       approve({
         address: ZEUS_TOKEN_ADDRESS,
         abi: ERC20_ABI,
         functionName: 'approve',
-        args: [WZEUS_TOKEN_ADDRESS, amountWei],
+        args: [WZEUS_TOKEN_ADDRESS, amountInBaseUnits],
       });
       setStatus({ type: 'info', message: 'Approving ZEUS...' });
     } catch (error: any) {
@@ -735,10 +724,10 @@ const Governance: React.FC = () => {
     }
 
     try {
-      const amountWei = parseEther(amount);
+      const amountInBaseUnits = parseUnits(amount, TOKEN_DECIMALS);
 
       // Check if approval is needed
-      if (!allowance || allowance < amountWei) {
+      if (!allowance || allowance < amountInBaseUnits) {
         setStatus({ type: 'info', message: 'Please approve ZEUS first' });
         handleApprove();
         return;
@@ -748,7 +737,7 @@ const Governance: React.FC = () => {
         address: WZEUS_TOKEN_ADDRESS,
         abi: WZEUS_ABI,
         functionName: 'deposit',
-        args: [amountWei],
+        args: [amountInBaseUnits],
       });
       setStatus({ type: 'info', message: 'Wrapping ZEUS...' });
     } catch (error: any) {
@@ -764,12 +753,12 @@ const Governance: React.FC = () => {
     }
 
     try {
-      const amountWei = parseEther(amount);
+      const amountInBaseUnits = parseUnits(amount, TOKEN_DECIMALS);
       unwrap({
         address: WZEUS_TOKEN_ADDRESS,
         abi: WZEUS_ABI,
         functionName: 'withdraw',
-        args: [amountWei],
+        args: [amountInBaseUnits],
       });
       setStatus({ type: 'info', message: 'Unwrapping wZEUS...' });
     } catch (error: any) {

@@ -107,6 +107,7 @@ const GovernanceSection = styled.section`
     background-repeat: no-repeat;
     opacity: 0.8;
     z-index: 0;
+    pointer-events: none;
   }
 
   &::after {
@@ -122,6 +123,7 @@ const GovernanceSection = styled.section`
     background-repeat: no-repeat;
     opacity: 0.6;
     z-index: 0;
+    pointer-events: none;
   }
 `;
 
@@ -172,6 +174,8 @@ const SubSection = styled(motion.div)`
     background: var(--gradient-rainbow);
     opacity: 0.05;
     animation: rotate 20s linear infinite;
+    pointer-events: none; /* Don't block clicks on content below */
+    z-index: 0;
   }
 `;
 

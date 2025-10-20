@@ -651,6 +651,13 @@ const Governance: React.FC = () => {
     const tokenAmount = balance / WEI_DIVISOR;
     const remainder = balance % WEI_DIVISOR;
 
+    // DEBUG: Log values to console
+    console.log('formatBalance DEBUG:', {
+      balanceWei: balance.toString(),
+      tokenAmount: tokenAmount.toString(),
+      tokenAmountNum: Number(tokenAmount)
+    });
+
     // Convert to number for comparison (safe for up to 15 significant digits)
     const tokenAmountNum = Number(tokenAmount);
 
@@ -920,9 +927,8 @@ const Governance: React.FC = () => {
                     placeholder={mode === 'wrap' ? 'Amount of ZEUS to wrap' : 'Amount of wZEUS to unwrap'}
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    disabled={isProcessing}
                   />
-                  <MaxButton onClick={handleSetMax} disabled={isProcessing}>
+                  <MaxButton onClick={handleSetMax}>
                     MAX
                   </MaxButton>
                 </InputWrapper>

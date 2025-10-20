@@ -128,6 +128,7 @@ const Navbar: React.FC = () => {
           <NavLink href="#mission">Mission</NavLink>
           <NavLink href="#roadmap">Roadmap</NavLink>
           <NavLink href="#leaderboard">Whales</NavLink>
+          <NavLink href="#governance">Governance</NavLink>
           <NavLink href="#join">Join Us</NavLink>
         </NavLinks>
 

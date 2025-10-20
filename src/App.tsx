@@ -13,6 +13,7 @@ import Roadmap from './components/Roadmap';
 import Leaderboard from './components/Leaderboard';
 import Mission from './components/Mission';
 import JoinUs from './components/JoinUs';
+import Governance from './components/Governance';
 import Footer from './components/Footer';
 
 const queryClient = new QueryClient();
@@ -67,6 +68,7 @@ function App() {
                 <Mission />
                 <Roadmap />
                 <Leaderboard />
+                <Governance />
                 <JoinUs />
               </main>
               <Footer />

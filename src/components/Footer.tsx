@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 
 const FooterSection = styled.footer`
@@ -50,19 +51,28 @@ const FooterLinks = styled.div`
   z-index: 1;
 `;
 
-const FooterLink = styled.a`
+const FooterLinkBase = `
   color: var(--color-text-light);
   font-weight: 700;
   font-family: var(--font-alt);
   transition: all 0.3s ease;
   padding: 0.5rem 1rem;
   border-radius: 20px;
+  text-decoration: none;
 
   &:hover {
     background: var(--color-primary);
     color: #000;
     transform: translateY(-2px);
   }
+`;
+
+const FooterLink = styled.a`
+  ${FooterLinkBase}
+`;
+
+const FooterLinkRouter = styled(Link)`
+  ${FooterLinkBase}
 `;
 
 const Disclaimer = styled.p`
@@ -109,6 +119,7 @@ const Footer: React.FC = () => {
           <FooterLink href="#mission">Mission</FooterLink>
           <FooterLink href="#roadmap">Roadmap</FooterLink>
           <FooterLink href="#leaderboard">Whales</FooterLink>
+          <FooterLinkRouter to="/governance">Governance</FooterLinkRouter>
           <FooterLink href="#join">Join Pack</FooterLink>
         </FooterLinks>
         

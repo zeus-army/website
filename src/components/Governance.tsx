@@ -449,6 +449,53 @@ const DisconnectButton = styled(motion.button)`
   }
 `;
 
+const RadioGroup = styled.div`
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1rem;
+  }
+`;
+
+const RadioOption = styled.label<{ $checked: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem 2rem;
+  border-radius: 60px;
+  background: ${props => props.$checked ?
+    'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)' :
+    'rgba(255, 255, 255, 0.05)'};
+  border: 3px solid ${props => props.$checked ? '#000' : 'rgba(255, 255, 255, 0.2)'};
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: ${props => props.$checked ? '#000' : 'var(--color-text-light)'};
+  box-shadow: ${props => props.$checked ?
+    '0 6px 0 #000, 0 8px 20px rgba(0, 0, 0, 0.4)' :
+    '0 2px 10px rgba(0, 0, 0, 0.3)'};
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: ${props => props.$checked ? '#000' : 'rgba(255, 215, 0, 0.5)'};
+    box-shadow: ${props => props.$checked ?
+      '0 8px 0 #000, 0 10px 25px rgba(0, 0, 0, 0.5)' :
+      '0 4px 15px rgba(255, 215, 0, 0.3)'};
+  }
+
+  input {
+    display: none;
+  }
+`;
+
 const ConnectButtonWrapper = styled.div`
   display: flex;
   justify-content: center;
@@ -520,8 +567,8 @@ const LoadingSpinner = styled.div`
 const Governance: React.FC = () => {
   const { address, isConnected } = useAccount();
   const { disconnect } = useDisconnect();
-  const [wrapAmount, setWrapAmount] = useState('');
-  const [unwrapAmount, setUnwrapAmount] = useState('');
+  const [mode, setMode] = useState<'wrap' | 'unwrap'>('wrap');
+  const [amount, setAmount] = useState('');
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
 
   // Read ZEUS balance
@@ -579,7 +626,7 @@ const Governance: React.FC = () => {
       setStatus({ type: 'success', message: 'Successfully wrapped ZEUS!' });
       refetchZeus();
       refetchWzeus();
-      setWrapAmount('');
+      setAmount('');
       setTimeout(() => setStatus(null), 3000);
     }
   }, [isWrapTxSuccess, refetchZeus, refetchWzeus]);
@@ -589,43 +636,42 @@ const Governance: React.FC = () => {
       setStatus({ type: 'success', message: 'Successfully unwrapped wZEUS!' });
       refetchZeus();
       refetchWzeus();
-      setUnwrapAmount('');
+      setAmount('');
       setTimeout(() => setStatus(null), 3000);
     }
   }, [isUnwrapTxSuccess, refetchZeus, refetchWzeus]);
 
   const formatBalance = (balance: bigint | undefined) => {
     if (!balance) return '0';
-    return parseFloat(formatUnits(balance, 18)).toLocaleString('en-US', {
-      maximumFractionDigits: 2,
-    });
+    const balanceStr = formatUnits(balance, 18);
+    // For very large numbers, use BigInt math to avoid precision loss
+    const [integerPart, decimalPart = ''] = balanceStr.split('.');
+    const formattedInteger = BigInt(integerPart).toLocaleString('en-US');
+    const decimals = decimalPart.slice(0, 2);
+    return decimals ? `${formattedInteger}.${decimals}` : formattedInteger;
   };
 
-  const handleSetMaxWrap = () => {
-    if (zeusBalance) {
-      setWrapAmount(formatUnits(zeusBalance, 18));
-    }
-  };
-
-  const handleSetMaxUnwrap = () => {
-    if (wzeusBalance) {
-      setUnwrapAmount(formatUnits(wzeusBalance, 18));
+  const handleSetMax = () => {
+    if (mode === 'wrap' && zeusBalance) {
+      setAmount(formatUnits(zeusBalance, 18));
+    } else if (mode === 'unwrap' && wzeusBalance) {
+      setAmount(formatUnits(wzeusBalance, 18));
     }
   };
 
   const handleApprove = async () => {
-    if (!wrapAmount || parseFloat(wrapAmount) <= 0) {
+    if (!amount || parseFloat(amount) <= 0) {
       setStatus({ type: 'error', message: 'Please enter a valid amount' });
       return;
     }
 
     try {
-      const amount = parseEther(wrapAmount);
+      const amountWei = parseEther(amount);
       approve({
         address: ZEUS_TOKEN_ADDRESS,
         abi: ERC20_ABI,
         functionName: 'approve',
-        args: [WZEUS_TOKEN_ADDRESS, amount],
+        args: [WZEUS_TOKEN_ADDRESS, amountWei],
       });
       setStatus({ type: 'info', message: 'Approving ZEUS...' });
     } catch (error: any) {
@@ -635,16 +681,16 @@ const Governance: React.FC = () => {
   };
 
   const handleWrap = async () => {
-    if (!wrapAmount || parseFloat(wrapAmount) <= 0) {
+    if (!amount || parseFloat(amount) <= 0) {
       setStatus({ type: 'error', message: 'Please enter a valid amount' });
       return;
     }
 
     try {
-      const amount = parseEther(wrapAmount);
+      const amountWei = parseEther(amount);
 
       // Check if approval is needed
-      if (!allowance || allowance < amount) {
+      if (!allowance || allowance < amountWei) {
         setStatus({ type: 'info', message: 'Please approve ZEUS first' });
         handleApprove();
         return;
@@ -654,7 +700,7 @@ const Governance: React.FC = () => {
         address: WZEUS_TOKEN_ADDRESS,
         abi: WZEUS_ABI,
         functionName: 'deposit',
-        args: [amount],
+        args: [amountWei],
       });
       setStatus({ type: 'info', message: 'Wrapping ZEUS...' });
     } catch (error: any) {
@@ -664,23 +710,31 @@ const Governance: React.FC = () => {
   };
 
   const handleUnwrap = async () => {
-    if (!unwrapAmount || parseFloat(unwrapAmount) <= 0) {
+    if (!amount || parseFloat(amount) <= 0) {
       setStatus({ type: 'error', message: 'Please enter a valid amount' });
       return;
     }
 
     try {
-      const amount = parseEther(unwrapAmount);
+      const amountWei = parseEther(amount);
       unwrap({
         address: WZEUS_TOKEN_ADDRESS,
         abi: WZEUS_ABI,
         functionName: 'withdraw',
-        args: [amount],
+        args: [amountWei],
       });
       setStatus({ type: 'info', message: 'Unwrapping wZEUS...' });
     } catch (error: any) {
       console.error('Unwrap error:', error);
       setStatus({ type: 'error', message: error.message || 'Unwrap failed' });
+    }
+  };
+
+  const handleSubmit = () => {
+    if (mode === 'wrap') {
+      handleWrap();
+    } else {
+      handleUnwrap();
     }
   };
 
@@ -783,72 +837,74 @@ const Governance: React.FC = () => {
                 </BalanceItem>
               </BalanceCard>
 
+              <RadioGroup>
+                <RadioOption $checked={mode === 'wrap'}>
+                  <input
+                    type="radio"
+                    name="mode"
+                    value="wrap"
+                    checked={mode === 'wrap'}
+                    onChange={() => {
+                      setMode('wrap');
+                      setAmount('');
+                    }}
+                  />
+                  Wrap ZEUS
+                </RadioOption>
+                <RadioOption $checked={mode === 'unwrap'}>
+                  <input
+                    type="radio"
+                    name="mode"
+                    value="unwrap"
+                    checked={mode === 'unwrap'}
+                    onChange={() => {
+                      setMode('unwrap');
+                      setAmount('');
+                    }}
+                  />
+                  Unwrap wZEUS
+                </RadioOption>
+              </RadioGroup>
+
               <InputContainer>
-                <div>
-                  <InputWrapper>
-                    <Input
-                      type="number"
-                      placeholder="Amount to wrap"
-                      value={wrapAmount}
-                      onChange={(e) => setWrapAmount(e.target.value)}
-                      disabled={isProcessing}
-                    />
-                    <MaxButton onClick={handleSetMaxWrap} disabled={isProcessing}>
-                      MAX
-                    </MaxButton>
-                  </InputWrapper>
-                </div>
+                <InputWrapper>
+                  <Input
+                    type="number"
+                    placeholder={mode === 'wrap' ? 'Amount of ZEUS to wrap' : 'Amount of wZEUS to unwrap'}
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    disabled={isProcessing}
+                  />
+                  <MaxButton onClick={handleSetMax} disabled={isProcessing}>
+                    MAX
+                  </MaxButton>
+                </InputWrapper>
 
-                <ActionButtons>
-                  <ActionButton
-                    onClick={handleWrap}
-                    disabled={isProcessing || !wrapAmount || parseFloat(wrapAmount) <= 0}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    {isApproving || isApproveTxLoading ? (
-                      <>
-                        <LoadingSpinner /> Approving...
-                      </>
-                    ) : isWrapping || isWrapTxLoading ? (
-                      <>
-                        <LoadingSpinner /> Wrapping...
-                      </>
-                    ) : (
-                      'Wrap ZEUS'
-                    )}
-                  </ActionButton>
-
-                  <UnwrapButton
-                    onClick={handleUnwrap}
-                    disabled={isProcessing || !unwrapAmount || parseFloat(unwrapAmount) <= 0}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    {isUnwrapping || isUnwrapTxLoading ? (
-                      <>
-                        <LoadingSpinner /> Unwrapping...
-                      </>
-                    ) : (
-                      'Unwrap wZEUS'
-                    )}
-                  </UnwrapButton>
-                </ActionButtons>
-
-                <div>
-                  <InputWrapper>
-                    <Input
-                      type="number"
-                      placeholder="Amount to unwrap"
-                      value={unwrapAmount}
-                      onChange={(e) => setUnwrapAmount(e.target.value)}
-                      disabled={isProcessing}
-                    />
-                    <MaxButton onClick={handleSetMaxUnwrap} disabled={isProcessing}>
-                      MAX
-                    </MaxButton>
-                  </InputWrapper>
-                </div>
+                <ActionButton
+                  onClick={handleSubmit}
+                  disabled={isProcessing || !amount || parseFloat(amount) <= 0}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  style={{ marginTop: '1.5rem' }}
+                >
+                  {isApproving || isApproveTxLoading ? (
+                    <>
+                      <LoadingSpinner /> Approving...
+                    </>
+                  ) : isWrapping || isWrapTxLoading ? (
+                    <>
+                      <LoadingSpinner /> Wrapping...
+                    </>
+                  ) : isUnwrapping || isUnwrapTxLoading ? (
+                    <>
+                      <LoadingSpinner /> Unwrapping...
+                    </>
+                  ) : mode === 'wrap' ? (
+                    'Wrap ZEUS → wZEUS'
+                  ) : (
+                    'Unwrap wZEUS → ZEUS'
+                  )}
+                </ActionButton>
               </InputContainer>
 
               {status && (
@@ -858,13 +914,29 @@ const Governance: React.FC = () => {
               )}
 
               <InfoBox>
-                <strong>💡 How it works:</strong><br />
-                1. Enter the amount of ZEUS you want to wrap<br />
-                2. Click "Wrap ZEUS" (first time you'll need to approve)<br />
-                3. Confirm the transaction in your wallet<br />
-                4. Your wZEUS is ready to vote!<br />
+                <strong>💡 What is wZEUS?</strong><br />
+                wZEUS is a <strong>wrapper token</strong> for ZEUS - NOT staking, NOT lock-up. You can get your ZEUS back anytime!<br />
                 <br />
-                To unwrap: Enter the amount of wZEUS and click "Unwrap wZEUS". It's that simple!
+                <strong>How it works:</strong><br />
+                • <strong>Wrapping</strong>: Deposit your ZEUS → Get wZEUS (1:1 ratio)<br />
+                • <strong>Unwrapping</strong>: Return wZEUS → Get your ZEUS back instantly<br />
+                • Your funds are ALWAYS yours - no time locks, no penalties<br />
+                <br />
+                <strong>Why wrap?</strong> wZEUS gives you voting power in the DAO while keeping full control of your tokens.<br />
+                <br />
+                <strong>🔒 Contract verified on Etherscan:</strong><br />
+                <a
+                  href="https://etherscan.io/address/0xA56B06AA7Bfa6cbaD8A0b5161ca052d86a5D88E9"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: 'var(--color-primary)',
+                    textDecoration: 'underline',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  View wZEUS Contract →
+                </a>
               </InfoBox>
 
               <DisconnectButton

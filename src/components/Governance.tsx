@@ -731,7 +731,7 @@ const Governance: React.FC = () => {
         functionName: 'approve',
         args: [WZEUS_TOKEN_ADDRESS, amountInBaseUnits],
       });
-      setStatus({ type: 'info', message: 'Approving ZEUS...' });
+      setStatus({ type: 'info', message: `Approving exactly ${amount} ZEUS (not unlimited). This is safe - you're only allowing the wrapper contract to access the exact amount you want to wrap.` });
     } catch (error: any) {
       console.error('Approve error:', error);
       setStatus({ type: 'error', message: error.message || 'Approval failed' });
@@ -755,7 +755,7 @@ const Governance: React.FC = () => {
 
       // Check if approval is needed
       if (!allowance || allowance < amountInBaseUnits) {
-        setStatus({ type: 'info', message: 'Please approve ZEUS first' });
+        setStatus({ type: 'info', message: `Step 1/2: You need to approve ${amount} ZEUS first. This allows the wrapper contract to access only this exact amount (not unlimited).` });
         handleApprove();
         return;
       }
@@ -766,7 +766,7 @@ const Governance: React.FC = () => {
         functionName: 'deposit',
         args: [amountInBaseUnits],
       });
-      setStatus({ type: 'info', message: 'Wrapping ZEUS...' });
+      setStatus({ type: 'info', message: 'Step 2/2: Wrapping ZEUS...' });
     } catch (error: any) {
       console.error('Wrap error:', error);
       setStatus({ type: 'error', message: error.message || 'Wrap failed' });
@@ -987,6 +987,19 @@ const Governance: React.FC = () => {
                   {status.message}
                 </StatusMessage>
               )}
+
+              <InfoBox style={{ background: 'rgba(135, 206, 235, 0.1)', borderColor: 'rgba(135, 206, 235, 0.3)' }}>
+                <strong>⚠️ Wallet warnings about approvals?</strong><br />
+                Some wallets (like Zerion) show scary warnings when you approve tokens. <strong>Don't worry!</strong><br />
+                <br />
+                <strong>Why this is safe:</strong><br />
+                • You're approving ONLY the exact amount you want to wrap (not unlimited)<br />
+                • The wZEUS contract is verified on Etherscan - anyone can review the code<br />
+                • It's a simple wrapper contract that only allows 1:1 deposit/withdraw<br />
+                • You can unwrap anytime to get your ZEUS back<br />
+                <br />
+                The warning appears because wallets are extra cautious with all approvals, even safe ones!
+              </InfoBox>
 
               <InfoBox>
                 <strong>💡 What is wZEUS?</strong><br />

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 
 const Nav = styled.nav`
@@ -61,7 +62,7 @@ const NavLinks = styled.div`
   }
 `;
 
-const NavLink = styled.a`
+const NavLinkBase = `
   color: var(--color-text-light);
   font-weight: 700;
   font-family: var(--font-alt);
@@ -70,6 +71,7 @@ const NavLink = styled.a`
   padding: 0.5rem 1rem;
   border-radius: 25px;
   opacity: 0.9;
+  text-decoration: none;
 
   &::after {
     content: '';
@@ -86,11 +88,19 @@ const NavLink = styled.a`
   &:hover {
     opacity: 1;
     transform: translateY(-2px);
-    
+
     &::after {
       width: 80%;
     }
   }
+`;
+
+const NavLink = styled.a`
+  ${NavLinkBase}
+`;
+
+const NavLinkRouter = styled(Link)`
+  ${NavLinkBase}
 `;
 
 const MobileMenu = styled.button`
@@ -119,17 +129,19 @@ const Navbar: React.FC = () => {
   return (
     <Nav>
       <NavContainer>
-        <Logo>
-          Zeus <span>Army</span>
-        </Logo>
-        
+        <Link to="/" style={{ textDecoration: 'none' }}>
+          <Logo>
+            Zeus <span>Army</span>
+          </Logo>
+        </Link>
+
         <NavLinks>
-          <NavLink href="#about">About Us</NavLink>
-          <NavLink href="#mission">Mission</NavLink>
-          <NavLink href="#roadmap">Roadmap</NavLink>
-          <NavLink href="#leaderboard">Whales</NavLink>
-          <NavLink href="#governance">Governance</NavLink>
-          <NavLink href="#join">Join Us</NavLink>
+          <NavLink href="/#about">About Us</NavLink>
+          <NavLink href="/#mission">Mission</NavLink>
+          <NavLink href="/#roadmap">Roadmap</NavLink>
+          <NavLink href="/#leaderboard">Whales</NavLink>
+          <NavLinkRouter to="/governance">Governance</NavLinkRouter>
+          <NavLink href="/#join">Join Us</NavLink>
         </NavLinks>
 
         <MobileMenu onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>

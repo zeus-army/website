@@ -1,5 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
@@ -7,13 +7,8 @@ import '@rainbow-me/rainbowkit/styles.css';
 import { config } from './config/wagmi';
 import { GlobalStyles } from './styles/GlobalStyles';
 import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import AboutUs from './components/AboutUs';
-import Roadmap from './components/Roadmap';
-import Leaderboard from './components/Leaderboard';
-import Mission from './components/Mission';
-import JoinUs from './components/JoinUs';
-import Governance from './components/Governance';
+import HomePage from './pages/HomePage';
+import GovernancePage from './pages/GovernancePage';
 import Footer from './components/Footer';
 
 const queryClient = new QueryClient();
@@ -63,13 +58,10 @@ function App() {
               <div className="lightning-bg"></div>
               <Navbar />
               <main>
-                <Hero />
-                <AboutUs />
-                <Mission />
-                <Roadmap />
-                <Leaderboard />
-                <Governance />
-                <JoinUs />
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/governance" element={<GovernancePage />} />
+                </Routes>
               </main>
               <Footer />
             </Router>

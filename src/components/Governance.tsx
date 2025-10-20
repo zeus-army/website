@@ -9,10 +9,6 @@ import { parseUnits, formatUnits } from 'viem';
 const ZEUS_TOKEN_ADDRESS = '0x0f7dc5d02cc1e1f5ee47854d534d332a1081ccc8';
 const WZEUS_TOKEN_ADDRESS = '0xA56B06AA7Bfa6cbaD8A0b5161ca052d86a5D88E9';
 
-// ZEUS token uses 6 decimals (not 18!)
-const TOKEN_DECIMALS = 6;
-const TOKEN_DIVISOR = BigInt("1000000");
-
 // ABIs
 const ERC20_ABI = [
   {
@@ -60,16 +56,22 @@ const WZEUS_ABI = [
     type: 'function',
   },
   {
-    inputs: [{ name: 'amount', type: 'uint256' }],
-    name: 'deposit',
-    outputs: [],
+    inputs: [
+      { name: 'account', type: 'address' },
+      { name: 'value', type: 'uint256' }
+    ],
+    name: 'depositFor',
+    outputs: [{ name: '', type: 'bool' }],
     stateMutability: 'nonpayable',
     type: 'function',
   },
   {
-    inputs: [{ name: 'amount', type: 'uint256' }],
-    name: 'withdraw',
-    outputs: [],
+    inputs: [
+      { name: 'account', type: 'address' },
+      { name: 'value', type: 'uint256' }
+    ],
+    name: 'withdrawTo',
+    outputs: [{ name: '', type: 'bool' }],
     stateMutability: 'nonpayable',
     type: 'function',
   },
@@ -744,6 +746,11 @@ const Governance: React.FC = () => {
       return;
     }
 
+    if (!address) {
+      setStatus({ type: 'error', message: 'Wallet not connected' });
+      return;
+    }
+
     if (zeusDecimals === undefined) {
       setStatus({ type: 'error', message: 'Loading token decimals...' });
       return;
@@ -763,8 +770,8 @@ const Governance: React.FC = () => {
       wrap({
         address: WZEUS_TOKEN_ADDRESS,
         abi: WZEUS_ABI,
-        functionName: 'deposit',
-        args: [amountInBaseUnits],
+        functionName: 'depositFor',
+        args: [address, amountInBaseUnits],
       });
       setStatus({ type: 'info', message: 'Step 2/2: Wrapping ZEUS...' });
     } catch (error: any) {
@@ -779,6 +786,11 @@ const Governance: React.FC = () => {
       return;
     }
 
+    if (!address) {
+      setStatus({ type: 'error', message: 'Wallet not connected' });
+      return;
+    }
+
     if (wzeusDecimals === undefined) {
       setStatus({ type: 'error', message: 'Loading token decimals...' });
       return;
@@ -790,8 +802,8 @@ const Governance: React.FC = () => {
       unwrap({
         address: WZEUS_TOKEN_ADDRESS,
         abi: WZEUS_ABI,
-        functionName: 'withdraw',
-        args: [amountInBaseUnits],
+        functionName: 'withdrawTo',
+        args: [address, amountInBaseUnits],
       });
       setStatus({ type: 'info', message: 'Unwrapping wZEUS...' });
     } catch (error: any) {

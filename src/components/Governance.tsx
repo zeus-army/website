@@ -579,6 +579,20 @@ const Governance: React.FC = () => {
   const [amount, setAmount] = useState('');
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
 
+  // Read ZEUS decimals
+  const { data: zeusDecimals } = useReadContract({
+    address: ZEUS_TOKEN_ADDRESS,
+    abi: ERC20_ABI,
+    functionName: 'decimals',
+  });
+
+  // Read wZEUS decimals
+  const { data: wzeusDecimals } = useReadContract({
+    address: WZEUS_TOKEN_ADDRESS,
+    abi: WZEUS_ABI,
+    functionName: 'decimals',
+  });
+
   // Read ZEUS balance
   const { data: zeusBalance, refetch: refetchZeus } = useReadContract({
     address: ZEUS_TOKEN_ADDRESS,
@@ -649,22 +663,20 @@ const Governance: React.FC = () => {
     }
   }, [isUnwrapTxSuccess, refetchZeus, refetchWzeus]);
 
-  const formatBalance = (balance: bigint | undefined) => {
-    if (!balance) return '0';
+  const formatBalance = (balance: bigint | undefined, decimals: number | undefined) => {
+    if (!balance || decimals === undefined) return '0';
 
-    // Convert from token's base units (6 decimals for ZEUS) to token amount
-    const tokenAmount = balance / TOKEN_DIVISOR;
-    const remainder = balance % TOKEN_DIVISOR;
+    // Convert from token's base units to human readable using formatUnits
+    const tokenAmountStr = formatUnits(balance, decimals);
+    const tokenAmountNum = parseFloat(tokenAmountStr);
 
     // DEBUG: Log values to console
     console.log('formatBalance DEBUG:', {
       balanceRaw: balance.toString(),
-      tokenAmount: tokenAmount.toString(),
-      tokenAmountNum: Number(tokenAmount)
+      decimals,
+      tokenAmountStr,
+      tokenAmountNum
     });
-
-    // Convert to number for comparison (safe for up to 15 significant digits)
-    const tokenAmountNum = Number(tokenAmount);
 
     // Format with T, B, M, K suffixes for large numbers
     if (tokenAmountNum >= 1_000_000_000_000) {
@@ -685,18 +697,17 @@ const Governance: React.FC = () => {
       return `${thousands.toFixed(2)}K`;
     } else {
       // Less than 1000, show with 2 decimals
-      const remainderStr = remainder.toString().padStart(18, '0');
-      const decimals = remainderStr.slice(0, 2);
-      return decimals !== '00' ? `${tokenAmount.toLocaleString('en-US')}.${decimals}` : tokenAmount.toLocaleString('en-US');
+      return tokenAmountNum.toFixed(2);
     }
   };
 
   const handleSetMax = () => {
     const balance = mode === 'wrap' ? zeusBalance : wzeusBalance;
-    if (!balance) return;
+    const decimals = mode === 'wrap' ? zeusDecimals : wzeusDecimals;
+    if (!balance || decimals === undefined) return;
 
     // Convert from token base units to token amount with full precision
-    const amountStr = formatUnits(balance, TOKEN_DECIMALS);
+    const amountStr = formatUnits(balance, decimals);
     setAmount(amountStr);
   };
 
@@ -706,8 +717,14 @@ const Governance: React.FC = () => {
       return;
     }
 
+    if (zeusDecimals === undefined) {
+      setStatus({ type: 'error', message: 'Loading token decimals...' });
+      return;
+    }
+
     try {
-      const amountInBaseUnits = parseUnits(amount, TOKEN_DECIMALS);
+      const amountInBaseUnits = parseUnits(amount, zeusDecimals);
+      console.log('Approve DEBUG:', { amount, zeusDecimals, amountInBaseUnits: amountInBaseUnits.toString() });
       approve({
         address: ZEUS_TOKEN_ADDRESS,
         abi: ERC20_ABI,
@@ -727,8 +744,14 @@ const Governance: React.FC = () => {
       return;
     }
 
+    if (zeusDecimals === undefined) {
+      setStatus({ type: 'error', message: 'Loading token decimals...' });
+      return;
+    }
+
     try {
-      const amountInBaseUnits = parseUnits(amount, TOKEN_DECIMALS);
+      const amountInBaseUnits = parseUnits(amount, zeusDecimals);
+      console.log('Wrap DEBUG:', { amount, zeusDecimals, amountInBaseUnits: amountInBaseUnits.toString() });
 
       // Check if approval is needed
       if (!allowance || allowance < amountInBaseUnits) {
@@ -756,8 +779,14 @@ const Governance: React.FC = () => {
       return;
     }
 
+    if (wzeusDecimals === undefined) {
+      setStatus({ type: 'error', message: 'Loading token decimals...' });
+      return;
+    }
+
     try {
-      const amountInBaseUnits = parseUnits(amount, TOKEN_DECIMALS);
+      const amountInBaseUnits = parseUnits(amount, wzeusDecimals);
+      console.log('Unwrap DEBUG:', { amount, wzeusDecimals, amountInBaseUnits: amountInBaseUnits.toString() });
       unwrap({
         address: WZEUS_TOKEN_ADDRESS,
         abi: WZEUS_ABI,
@@ -876,11 +905,11 @@ const Governance: React.FC = () => {
               <BalanceCard>
                 <BalanceItem>
                   <BalanceLabel>Your ZEUS Balance</BalanceLabel>
-                  <BalanceAmount>{formatBalance(zeusBalance)}</BalanceAmount>
+                  <BalanceAmount>{formatBalance(zeusBalance, zeusDecimals)}</BalanceAmount>
                 </BalanceItem>
                 <BalanceItem>
                   <BalanceLabel>Your wZEUS Balance</BalanceLabel>
-                  <BalanceAmount>{formatBalance(wzeusBalance)}</BalanceAmount>
+                  <BalanceAmount>{formatBalance(wzeusBalance, wzeusDecimals)}</BalanceAmount>
                 </BalanceItem>
               </BalanceCard>
 

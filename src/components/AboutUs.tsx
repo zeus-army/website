@@ -161,13 +161,20 @@ const ProfileName = styled.h3`
   text-shadow: 2px 2px 4px rgba(30, 144, 255, 0.3);
 `;
 
-const ProfileSubtitle = styled.p`
-  font-size: 0.8rem;
-  color: #666;
+const ProfileSubtitle = styled.p<{ $isLeft?: boolean }>`
+  font-size: ${props => props.$isLeft ? '1.1rem' : '0.8rem'};
+  color: ${props => props.$isLeft ? '#d63031' : '#666'};
   margin-top: -0.3rem;
   margin-bottom: 0.5rem;
-  font-style: italic;
-  opacity: 0.8;
+  font-style: ${props => props.$isLeft ? 'normal' : 'italic'};
+  opacity: ${props => props.$isLeft ? '1' : '0.8'};
+  font-weight: ${props => props.$isLeft ? '900' : '400'};
+  text-transform: ${props => props.$isLeft ? 'uppercase' : 'none'};
+  letter-spacing: ${props => props.$isLeft ? '0.05em' : 'normal'};
+  background: ${props => props.$isLeft ? 'rgba(214, 48, 49, 0.1)' : 'transparent'};
+  padding: ${props => props.$isLeft ? '0.5rem 1rem' : '0'};
+  border-radius: ${props => props.$isLeft ? '10px' : '0'};
+  border: ${props => props.$isLeft ? '2px solid #d63031' : 'none'};
 `;
 
 const ProfileENS = styled.p`
@@ -339,7 +346,11 @@ const AboutUs: React.FC = () => {
               
               <ProfileContent>
                 <ProfileName>{member.nickname}</ProfileName>
-                {member.subtitle && <ProfileSubtitle>{member.subtitle}</ProfileSubtitle>}
+                {member.subtitle && (
+                  <ProfileSubtitle $isLeft={member.subtitle.includes('Left')}>
+                    {member.subtitle}
+                  </ProfileSubtitle>
+                )}
                 <ProfileENS>{member.ens}</ProfileENS>
                 
                 <ProfileStats>

@@ -27,9 +27,13 @@ async function getRedisClient() {
 
   if (isProduction) {
     console.log('Using Vercel KV');
+    // Trim whitespace/newlines from environment variables
+    const kvUrl = process.env.KV_REST_API_URL?.trim();
+    const kvToken = process.env.KV_REST_API_TOKEN?.trim();
+
     redisClient = createClient({
-      url: process.env.KV_REST_API_URL,
-      token: process.env.KV_REST_API_TOKEN,
+      url: kvUrl,
+      token: kvToken,
     });
   } else {
     try {

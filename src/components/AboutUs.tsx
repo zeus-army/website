@@ -220,25 +220,25 @@ const Stat = styled.div`
 const teamMembers = [
   {
     nickname: 'Alberto Gómez Toribio',
-    subtitle: 'and his team',
+    subtitle: 'Left Oct 21, 2025',
     ens: 'gotoalberto.eth',
     zeusPercentage: '1.15%',
     avatar: '/images/gotoalberto.jpg',
-    role: 'Strategy & Dev'
+    role: 'Former Leader'
   },
   {
-    nickname: 'We Are Hiring',
-    ens: 'apply@zeus.army',
-    zeusPercentage: 'TBD',
-    avatar: '🚀',
-    role: 'Frontend Developer'
+    nickname: 'Position Vacant',
+    ens: 'No active leadership',
+    zeusPercentage: 'N/A',
+    avatar: '❌',
+    role: 'Inactive'
   },
   {
-    nickname: 'We Are Hiring',
-    ens: 'apply@zeus.army',
-    zeusPercentage: 'TBD',
-    avatar: '📈',
-    role: 'Growth Lead'
+    nickname: 'Position Vacant',
+    ens: 'No active leadership',
+    zeusPercentage: 'N/A',
+    avatar: '❌',
+    role: 'Inactive'
   }
 ];
 
@@ -255,7 +255,39 @@ const AboutUs: React.FC = () => {
         >
           THE PACK LEADERS 🐶
         </SectionTitle>
-        
+
+        <motion.div
+          style={{
+            textAlign: 'center',
+            fontSize: '1.6rem',
+            maxWidth: '900px',
+            margin: '0 auto 2rem',
+            fontFamily: 'var(--font-alt)',
+            fontWeight: '700',
+            color: '#fff',
+            background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)',
+            padding: '2.5rem 3rem',
+            borderRadius: '40px',
+            border: '5px solid #d63031',
+            boxShadow: '0 10px 0 #a02020, 0 12px 40px rgba(255, 0, 0, 0.4)',
+            position: 'relative',
+            zIndex: 10,
+            lineHeight: '1.8',
+            transform: 'rotate(-1deg)'
+          }}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          viewport={{ once: true }}
+        >
+          ⚠️ <strong>INITIATIVE ENDED</strong> ⚠️<br/>
+          <span style={{ fontSize: '1.2rem', marginTop: '1rem', display: 'block' }}>
+            As of October 21, 2025, this community initiative is no longer active.
+            Alberto has left the project and there is currently no active leadership.
+            The initiative has concluded without achieving its goals.
+          </span>
+        </motion.div>
+
         <motion.p
           style={{
             textAlign: 'center',
@@ -277,15 +309,14 @@ const AboutUs: React.FC = () => {
           }}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
           viewport={{ once: true }}
         >
-          We are Pepe's best friends, leading the most loyal pack in the memecoin universe!
-          Unlike others, we don't hide behind anonymity - we step forward, take responsibility,
-          and prove our commitment to ZEUS with our own bags. Zeus Army is where diamond paws
-          meet legendary gains and real accountability. We have no affiliation with the official
-          ZEUS team, do not represent ZEUS CC8 INC., and hold no formal relationship or position
-          with them. Woof! 🚀🐾
+          This was an attempt to create a community-led initiative for ZEUS holders.
+          We stepped forward with transparency and commitment, proving our dedication with our own bags.
+          Unfortunately, the initiative did not gain the traction needed to succeed.
+          We have no affiliation with the official ZEUS team, do not represent ZEUS CC8 INC.,
+          and hold no formal relationship or position with them.
         </motion.p>
         
         <TeamGrid>

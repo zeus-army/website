@@ -115,12 +115,12 @@ const Footer: React.FC = () => {
         </Logo>
         
         <FooterLinks>
-          <FooterLink href="#about">About</FooterLink>
-          <FooterLink href="#mission">Mission</FooterLink>
-          <FooterLink href="#roadmap">Roadmap</FooterLink>
-          <FooterLink href="#leaderboard">Whales</FooterLink>
+          <FooterLink href="/#about">About</FooterLink>
+          <FooterLink href="/#mission">Mission</FooterLink>
+          <FooterLink href="/#roadmap">Roadmap</FooterLink>
+          <FooterLink href="/#leaderboard">Whales</FooterLink>
           <FooterLinkRouter to="/governance">Governance</FooterLinkRouter>
-          <FooterLink href="#join">Join Pack</FooterLink>
+          <FooterLink href="/#join">Join Pack</FooterLink>
         </FooterLinks>
         
         <Disclaimer>

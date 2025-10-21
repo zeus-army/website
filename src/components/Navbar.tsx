@@ -103,13 +103,14 @@ const NavLinkRouter = styled(Link)`
   ${NavLinkBase}
 `;
 
-const MobileMenu = styled.button`
+const MobileMenu = styled.button<{ $isOpen: boolean }>`
   display: none;
   flex-direction: column;
   gap: 4px;
   background: none;
   border: none;
   cursor: pointer;
+  z-index: 1001;
 
   @media (max-width: 768px) {
     display: flex;
@@ -120,6 +121,73 @@ const MobileMenu = styled.button`
     height: 3px;
     background: var(--color-primary);
     transition: all 0.3s ease;
+
+    ${({ $isOpen }) => $isOpen && `
+      &:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+      }
+      &:nth-child(2) {
+        opacity: 0;
+      }
+      &:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -6px);
+      }
+    `}
+  }
+`;
+
+const MobileMenuContainer = styled.div<{ $isOpen: boolean }>`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    background: rgba(13, 14, 35, 0.98);
+    backdrop-filter: blur(20px);
+    padding: 2rem;
+    gap: 1.5rem;
+    transform: ${({ $isOpen }) => $isOpen ? 'translateX(0)' : 'translateX(100%)'};
+    transition: transform 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border-bottom: 2px solid var(--color-primary);
+  }
+`;
+
+const MobileNavLink = styled.a`
+  color: var(--color-text-light);
+  font-weight: 700;
+  font-family: var(--font-alt);
+  font-size: 1.2rem;
+  padding: 1rem;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  text-align: center;
+
+  &:hover {
+    background: var(--color-primary);
+    color: #000;
+  }
+`;
+
+const MobileNavLinkRouter = styled(Link)`
+  color: var(--color-text-light);
+  font-weight: 700;
+  font-family: var(--font-alt);
+  font-size: 1.2rem;
+  padding: 1rem;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  text-align: center;
+
+  &:hover {
+    background: var(--color-primary);
+    color: #000;
   }
 `;
 
@@ -144,12 +212,21 @@ const Navbar: React.FC = () => {
           <NavLink href="/#join">Join Us</NavLink>
         </NavLinks>
 
-        <MobileMenu onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+        <MobileMenu $isOpen={mobileMenuOpen} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
           <span />
           <span />
           <span />
         </MobileMenu>
       </NavContainer>
+
+      <MobileMenuContainer $isOpen={mobileMenuOpen}>
+        <MobileNavLink href="/#about" onClick={() => setMobileMenuOpen(false)}>About Us</MobileNavLink>
+        <MobileNavLink href="/#mission" onClick={() => setMobileMenuOpen(false)}>Mission</MobileNavLink>
+        <MobileNavLink href="/#roadmap" onClick={() => setMobileMenuOpen(false)}>Roadmap</MobileNavLink>
+        <MobileNavLink href="/#leaderboard" onClick={() => setMobileMenuOpen(false)}>Whales</MobileNavLink>
+        <MobileNavLinkRouter to="/governance" onClick={() => setMobileMenuOpen(false)}>Governance</MobileNavLinkRouter>
+        <MobileNavLink href="/#join" onClick={() => setMobileMenuOpen(false)}>Join Us</MobileNavLink>
+      </MobileMenuContainer>
     </Nav>
   );
 };

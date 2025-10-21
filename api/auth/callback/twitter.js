@@ -4,7 +4,7 @@ const { mainnet } = require('viem/chains');
 const { verifyMessage } = require('viem');
 
 const TWITTER_CLIENT_ID = process.env.TWITTER_CLIENT_ID || '';
-const TWITTER_CLIENT_SECRET = process.env.TWITTER_CLIENT_SECRET || '[TWITTER_SECRET_REMOVED]';
+const TWITTER_CLIENT_SECRET = process.env.TWITTER_CLIENT_SECRET || '';
 const CALLBACK_URL = process.env.TWITTER_CALLBACK_URL || 'https://zeus.army/api/auth/callback/twitter';
 const ETHEREUM_RPC_URL = process.env.ETHEREUM_RPC_URL || 'https://eth.llamarpc.com';
 const ZEUS_TOKEN_ADDRESS = '0x0f7dc5d02cc1e1f5ee47854d534d332a1081ccc8';

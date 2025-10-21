@@ -227,6 +227,14 @@ const TableHeader = styled.div`
   font-size: 1.1rem;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
   text-align: center;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr 200px;
+
+    & > div:first-child {
+      display: none;
+    }
+  }
 `;
 
 const TableRow = styled(motion.div)<{ $rank: number }>`
@@ -246,18 +254,22 @@ const TableRow = styled(motion.div)<{ $rank: number }>`
       transparent 100%);
     border-left: 3px solid ${props.$rank === 1 ? 'var(--color-yellow)' : props.$rank === 2 ? '#C0C0C0' : '#CD7F32'};
   `}
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr 200px;
+  }
 `;
 
 const Rank = styled.div<{ $rank: number }>`
   font-size: 2rem;
   font-weight: 700;
   font-family: var(--font-display);
-  color: ${props => props.$rank === 1 ? 'var(--color-yellow)' : 
-          props.$rank === 2 ? '#C0C0C0' : 
+  color: ${props => props.$rank === 1 ? 'var(--color-yellow)' :
+          props.$rank === 2 ? '#C0C0C0' :
           props.$rank === 3 ? '#CD7F32' : 'var(--color-text-light)'};
   text-align: center;
   text-shadow: 0 0 20px currentColor;
-  
+
   ${props => props.$rank <= 3 && `
     &::after {
       content: '${props.$rank === 1 ? '👑' : props.$rank === 2 ? '🥈' : '🥉'}';
@@ -265,6 +277,10 @@ const Rank = styled.div<{ $rank: number }>`
       font-size: 1.5rem;
     }
   `}
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const Balance = styled.div`
@@ -331,6 +347,12 @@ const TwitterLink = styled.a`
   pointer-events: auto !important;
   position: relative !important;
   z-index: 10 !important;
+`;
+
+const TwitterIcon = styled.span`
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 interface LeaderboardEntry {
@@ -535,7 +557,7 @@ const Leaderboard: React.FC = () => {
                       window.open(url, '_blank', 'noopener,noreferrer');
                     }}
                   >
-                    🐦 {entry.twitter_handle}
+                    <TwitterIcon>🐦 </TwitterIcon>{entry.twitter_handle}
                   </TwitterLink>
                 )}
               </div>

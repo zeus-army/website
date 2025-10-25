@@ -353,7 +353,8 @@ const Leaderboard: React.FC = () => {
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
 
   useEffect(() => {
-    fetchLeaderboard();
+    // Refresh balances from blockchain, then fetch leaderboard
+    refreshBalancesAndFetch();
 
     // Check if we're coming back from Twitter auth
     const urlParams = new URLSearchParams(window.location.search);
@@ -364,7 +365,7 @@ const Leaderboard: React.FC = () => {
       setStatus({ type: 'success', message: 'Successfully registered as leader! Your wallet is now publicly exposed. 📋' });
       window.history.replaceState({}, document.title, window.location.pathname);
       setTimeout(() => {
-        fetchLeaderboard();
+        refreshBalancesAndFetch();
         setStatus(null);
       }, 2000);
     } else if (error) {
@@ -388,6 +389,21 @@ const Leaderboard: React.FC = () => {
       setLeaderboard(response.data);
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
+    }
+  };
+
+  const refreshBalancesAndFetch = async () => {
+    try {
+      console.log('Refreshing balances from blockchain...');
+      // Call refresh endpoint to update balances from blockchain
+      await axios.post('/api/refresh-balances');
+      console.log('Balances refreshed, fetching leaderboard...');
+      // Then fetch the updated leaderboard
+      await fetchLeaderboard();
+    } catch (error) {
+      console.error('Error refreshing balances:', error);
+      // Even if refresh fails, try to fetch existing data
+      await fetchLeaderboard();
     }
   };
 

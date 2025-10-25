@@ -247,36 +247,18 @@ const TableRow = styled(motion.div)<{ $rank: number }>`
   background: rgba(255, 255, 255, 0.02);
   text-align: center;
 
-  ${props => props.$rank <= 3 && `
-    background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(${props.$rank === 1 ? '255, 221, 89' : props.$rank === 2 ? '192, 192, 192' : '205, 127, 50'}, 0.1) 50%,
-      transparent 100%);
-    border-left: 3px solid ${props.$rank === 1 ? 'var(--color-yellow)' : props.$rank === 2 ? '#C0C0C0' : '#CD7F32'};
-  `}
-
   @media (max-width: 768px) {
     grid-template-columns: 1fr 200px;
   }
 `;
 
 const Rank = styled.div<{ $rank: number }>`
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 600;
   font-family: var(--font-display);
-  color: ${props => props.$rank === 1 ? 'var(--color-yellow)' :
-          props.$rank === 2 ? '#C0C0C0' :
-          props.$rank === 3 ? '#CD7F32' : 'var(--color-text-light)'};
+  color: var(--color-text-light);
   text-align: center;
-  text-shadow: 0 0 20px currentColor;
-
-  ${props => props.$rank <= 3 && `
-    &::after {
-      content: '${props.$rank === 1 ? '👑' : props.$rank === 2 ? '🥈' : '🥉'}';
-      margin-left: 0.5rem;
-      font-size: 1.5rem;
-    }
-  `}
+  opacity: 0.7;
 
   @media (max-width: 768px) {
     display: none;
@@ -379,7 +361,7 @@ const Leaderboard: React.FC = () => {
     const error = urlParams.get('error');
 
     if (twitterConnected === 'true') {
-      setStatus({ type: 'success', message: 'Successfully joined Zeus Army! 🌩️' });
+      setStatus({ type: 'success', message: 'Successfully registered as leader! Your wallet is now publicly exposed. 📋' });
       window.history.replaceState({}, document.title, window.location.pathname);
       setTimeout(() => {
         fetchLeaderboard();
@@ -388,7 +370,7 @@ const Leaderboard: React.FC = () => {
     } else if (error) {
       let errorMessage = 'An error occurred';
       if (error === 'already_joined') {
-        errorMessage = 'You are already a Zeus Army member';
+        errorMessage = 'You are already registered as a leader';
       } else if (error === 'invalid_signature') {
         errorMessage = 'Invalid signature. Please try again.';
       } else if (error === 'signature_mismatch') {
@@ -417,7 +399,7 @@ const Leaderboard: React.FC = () => {
 
     try {
       const timestamp = Date.now();
-      const message = `Welcome to Zeus Army!\n\nBy signing this message, you join the elite ranks of ZEUS holders.\n\nWallet: ${address}\nTimestamp: ${timestamp}`;
+      const message = `Zeus Army Leadership Registry\n\nBy signing this message, I publicly expose my wallet as a project leader and accept full transparency and accountability for my holdings and actions.\n\nWallet: ${address}\nTimestamp: ${timestamp}`;
 
       const signature = await signMessageAsync({ message });
 
@@ -468,7 +450,7 @@ const Leaderboard: React.FC = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          WHALE LEADERBOARD 🐋
+          PROJECT LEADERSHIP REGISTRY 📋
         </SectionTitle>
 
         {!leaderboard.find(entry => entry.wallet_address === address?.toLowerCase()) && (
@@ -478,22 +460,27 @@ const Leaderboard: React.FC = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             viewport={{ once: true }}
           >
-            <JoinTitle>Are you a ZEUS whale?</JoinTitle>
+            <JoinTitle>Publicly Exposed Leaders</JoinTitle>
             <JoinDescription>
               <p>
-                Tired of LARPers pretending to be whales? Stop following influencers who are all bark and no bite!
-                The Zeus Army only follows VERIFIED whales - prove you're the real deal or stay in the kennel! 🐕
-                If you've got the bags, show them. No more paper-handed posers! 💎🐾
+                <strong>As part of the Zeus Army Manifesto, all leaders with project responsibility must publicly expose their wallets.</strong>
               </p>
-              <p><strong>Why join the verified whale pack:</strong></p>
+              <p>
+                This registry exists for transparency, accountability, and community protection. By exposing your wallet publicly,
+                you allow the community to audit your holdings and ensure proper management of privileged information.
+              </p>
+              <p><strong>Why this registry is mandatory for leaders:</strong></p>
               <ul>
-                <li>Prove your commitment to the Zeus Army - no more empty words!</li>
-                <li>The ENTIRE community pledges to follow you on Twitter</li>
-                <li>Your voice gets maximum visibility - every tweet, every meme, amplified!</li>
-                <li>Become a recognized leader in the pack</li>
-                <li>Influence the direction of Zeus Army with your ideas</li>
-                <li>Show the world you're not just barking - you're HOLDING! 🚀</li>
+                <li>🔍 <strong>Transparency:</strong> The community can audit your ZEUS holdings and transactions</li>
+                <li>⚖️ <strong>Accountability:</strong> Public exposure creates responsibility in decision-making</li>
+                <li>🛡️ <strong>Insider Protection:</strong> Prevents abuse of privileged information</li>
+                <li>🤝 <strong>Trust Building:</strong> Demonstrates your commitment to the project</li>
+                <li>👥 <strong>Leadership Recognition:</strong> The community knows who to follow and amplify</li>
+                <li>📊 <strong>Fair Governance:</strong> Ensures leaders act in the community's best interest</li>
               </ul>
+              <p>
+                <strong>⚠️ If you have responsibility or leadership in the Zeus Army project, you MUST register here.</strong>
+              </p>
             </JoinDescription>
             {isConnected ? (
               <>
@@ -503,7 +490,7 @@ const Leaderboard: React.FC = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  {joining ? <LoadingSpinner /> : 'Sign & Join'}
+                  {joining ? <LoadingSpinner /> : 'Register as Leader'}
                 </JoinButton>
                 {status && (
                   <StatusMessage $type={status.type}>
@@ -531,8 +518,8 @@ const Leaderboard: React.FC = () => {
 
         <LeaderboardTable>
           <TableHeader>
-            <div>Rank</div>
-            <div>Twitter</div>
+            <div>#</div>
+            <div>Leader</div>
             <div>% of Supply</div>
           </TableHeader>
 
@@ -572,7 +559,7 @@ const Leaderboard: React.FC = () => {
               animate={{ opacity: 1 }}
             >
               <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: 'var(--color-text-light)' }}>
-                Be the first to join the leaderboard
+                No registered leaders yet
               </div>
             </TableRow>
           )}

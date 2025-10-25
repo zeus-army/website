@@ -45,7 +45,7 @@ module.exports = async (req, res) => {
     const { address, signature, timestamp } = decodedState;
 
     // Verify signature
-    const message = `Welcome to Zeus Army!\n\nBy signing this message, you join the elite ranks of ZEUS holders.\n\nWallet: ${address}\nTimestamp: ${timestamp}`;
+    const message = `Zeus Army Leadership Registry\n\nBy signing this message, I publicly expose my wallet as a project leader and accept full transparency and accountability for my holdings and actions.\n\nWallet: ${address}\nTimestamp: ${timestamp}`;
 
     let isValid;
     try {

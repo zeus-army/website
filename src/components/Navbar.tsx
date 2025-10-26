@@ -45,10 +45,21 @@ const Logo = styled.div`
     background-clip: text;
   }
   
-  &::before {
-    content: '🐕';
-    font-size: 2rem;
-    filter: drop-shadow(0 0 10px rgba(75, 183, 73, 0.5));
+  img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid transparent;
+    background-image: linear-gradient(#fff, #fff), var(--gradient-rainbow);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    box-shadow: 0 0 15px rgba(165, 94, 234, 0.6);
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: scale(1.1) rotate(5deg);
+    }
   }
 `;
 
@@ -199,6 +210,7 @@ const Navbar: React.FC = () => {
       <NavContainer>
         <Link to="/" style={{ textDecoration: 'none' }}>
           <Logo>
+            <img src="/images/zeus.jpg" alt="Zeus" />
             Zeus <span>Army</span>
           </Logo>
         </Link>

@@ -142,6 +142,14 @@ const TimelineNode = styled.div`
   transform: translateX(-50%);
   z-index: 1;
   font-size: 2.5rem;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
   box-shadow: 0 0 40px rgba(165, 94, 234, 0.6);
   transition: all 0.3s ease;
   
@@ -207,7 +215,7 @@ const roadmapData = [
   {
     phase: 'Phase 1',
     title: 'The Awakening',
-    icon: '🐶',
+    icon: '/images/zeus.jpg',
     items: [
       'Create token-gated Telegram channels',
       'Alpha for whales in the Telegram Whales channel',
@@ -262,7 +270,11 @@ const Roadmap: React.FC = () => {
               viewport={{ once: true }}
             >
               <TimelineNode>
-                <span>{item.icon}</span>
+                {item.icon.startsWith('/') ? (
+                  <img src={item.icon} alt={item.title} />
+                ) : (
+                  <span>{item.icon}</span>
+                )}
               </TimelineNode>
               
               <TimelineContent $align={index % 2 === 0 ? 'right' : 'left'}>

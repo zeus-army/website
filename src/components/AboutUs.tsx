@@ -62,7 +62,11 @@ const SectionTitle = styled(motion.h2)`
   text-align: center;
   margin-bottom: 4rem;
   position: relative;
-  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+
   &::after {
     content: '';
     position: absolute;
@@ -72,6 +76,33 @@ const SectionTitle = styled(motion.h2)`
     width: 100px;
     height: 4px;
     background: var(--color-primary);
+  }
+`;
+
+const ZeusIcon = styled.img`
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid transparent;
+  background-image: linear-gradient(#fff, #fff), var(--gradient-rainbow);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 0 30px rgba(165, 94, 234, 0.6), 0 0 60px rgba(30, 144, 255, 0.4);
+  animation: float 3s ease-in-out infinite;
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  &:hover {
+    animation: spin 1s linear infinite, float 3s ease-in-out infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
 `;
 
@@ -237,7 +268,8 @@ const AboutUs: React.FC = () => {
           transition={{ duration: 0.8, type: "spring" }}
           viewport={{ once: true }}
         >
-          THE PACK LEADERS 🐶
+          THE PACK LEADERS
+          <ZeusIcon src="/images/zeus.jpg" alt="Zeus" />
         </SectionTitle>
 
         <motion.p

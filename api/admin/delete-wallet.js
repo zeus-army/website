@@ -1,6 +1,6 @@
 const { kv } = require('@vercel/kv');
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 module.exports = async (req, res) => {
   // Enable CORS

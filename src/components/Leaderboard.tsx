@@ -479,6 +479,12 @@ const Leaderboard: React.FC = () => {
           {refreshing && <span style={{ fontSize: '0.8rem', marginLeft: '1rem', opacity: 0.6 }}>🔄 Updating...</span>}
         </SectionTitle>
 
+        {isConnected && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem', position: 'relative', zIndex: 100 }}>
+            <ConnectButton />
+          </div>
+        )}
+
         {!leaderboard.find(entry => entry.wallet_address === address?.toLowerCase()) && (
           <JoinContainer
             initial={{ opacity: 0, y: 30 }}
@@ -518,9 +524,6 @@ const Leaderboard: React.FC = () => {
                 >
                   {joining ? <LoadingSpinner /> : 'Register as Leader'}
                 </JoinButton>
-                <RainbowButtonWrapper style={{ marginTop: '1rem' }}>
-                  <ConnectButton />
-                </RainbowButtonWrapper>
                 {status && (
                   <StatusMessage $type={status.type}>
                     {status.message}

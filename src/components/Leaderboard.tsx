@@ -518,6 +518,9 @@ const Leaderboard: React.FC = () => {
                 >
                   {joining ? <LoadingSpinner /> : 'Register as Leader'}
                 </JoinButton>
+                <RainbowButtonWrapper style={{ marginTop: '1rem' }}>
+                  <ConnectButton />
+                </RainbowButtonWrapper>
                 {status && (
                   <StatusMessage $type={status.type}>
                     {status.message}

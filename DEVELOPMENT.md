@@ -1,187 +1,209 @@
-# Zeus Army Website - Guía de Desarrollo 🐕⚡
+# Zeus Army Website - Development Guide 🐕⚡
 
-## 🚀 Inicio Rápido
+## 🚀 Quick Start
 
-### Requisitos Previos
-- Node.js 16+
-- Docker Desktop o OrbStack (para Redis local)
-- Una wallet Ethereum (MetaMask recomendado)
+### Prerequisites
+- Node.js 18+
+- Docker Desktop or OrbStack (for local Redis)
+- An Ethereum wallet (MetaMask recommended)
 
-### Instalación
+### Installation
 
-1. **Instalar dependencias:**
+1. **Install dependencies:**
 ```bash
 npm install
 ```
 
-2. **Configurar variables de entorno:**
+2. **Configure environment variables:**
 
-El archivo `.env.local` ya está configurado para desarrollo local:
+Create a `.env.local` file for local development:
 ```bash
 REDIS_URL=redis://localhost:6379
 ETHEREUM_RPC_URL=https://eth.llamarpc.com
 ```
 
-### Desarrollo Local
+### Local Development
 
-#### Opción 1: Con Redis (Recomendado)
+#### Option 1: With Redis (Recommended)
 
-1. **Iniciar Redis con Docker:**
+1. **Start Redis with Docker:**
 ```bash
 docker-compose -f docker-compose.dev.yml up -d
 ```
 
-2. **Iniciar el servidor API (Terminal 1):**
+2. **Start API server (Terminal 1):**
 ```bash
 vercel dev --listen 3001
 ```
 
-3. **Iniciar React (Terminal 2):**
+3. **Start React (Terminal 2):**
 ```bash
 npm start
 ```
 
-La aplicación estará disponible en:
+The application will be available at:
 - Frontend: http://localhost:3000
 - API: http://localhost:3001
 
-#### Opción 2: Solo Frontend (sin funcionalidad de leaderboard)
+#### Option 2: Frontend Only (no leaderboard functionality)
 
-Si solo quieres ver los cambios de UI sin las APIs:
+If you only want to see UI changes without APIs:
 
 ```bash
 npm start
 ```
 
-### 🏗️ Arquitectura
+### 🏗️ Architecture
 
 #### Frontend (React + TypeScript)
-- **Framework**: React 19 con TypeScript
-- **Estilos**: Styled Components
-- **Animaciones**: Framer Motion
-- **Web3**: @web3-react/core + ethers.js
+- **Framework**: React 19 with TypeScript
+- **Styling**: Styled Components
+- **Animations**: Framer Motion
+- **Web3**: wagmi v2 + RainbowKit v2 + viem
 
 #### Backend (Vercel Serverless Functions)
-- **API Routes**: `/api/leaderboard` y `/api/join`
-- **Base de datos**: Redis (local) o Vercel KV (producción)
-- **Smart Contract**: Token ZEUS en Ethereum Mainnet
+- **API Routes**: `/api/leaderboard`, `/api/join`, `/api/auth/*`
+- **Database**: Redis (local) or Vercel KV (production)
+- **Smart Contracts**: ZEUS and wZEUS tokens on Ethereum Mainnet
 
-#### Estructura de Archivos
+#### File Structure
 ```
 zeus-army-website/
 ├── src/
-│   ├── components/        # Componentes React
-│   │   ├── Leaderboard.tsx  # Leaderboard con wallet connect
-│   │   ├── Footer.tsx       # Footer mejorado
+│   ├── components/        # React components
+│   │   ├── Leaderboard.tsx  # Leadership Registry
+│   │   ├── Governance.tsx   # wZEUS wrapping/unwrapping
+│   │   ├── Footer.tsx       # Footer
 │   │   └── ...
 │   └── styles/
-│       └── GlobalStyles.ts  # Estilos globales
+│       └── GlobalStyles.ts  # Global styles
 ├── api/                   # Vercel Serverless Functions
-│   ├── _redis.ts         # Cliente Redis unificado
-│   ├── leaderboard.ts    # GET endpoint
-│   └── join.ts           # POST endpoint
-├── public/               # Assets estáticos
-└── docker-compose.dev.yml # Redis para desarrollo
+│   ├── leaderboard.js    # GET endpoint
+│   ├── refresh-balances.js # POST endpoint to refresh balances
+│   ├── auth/
+│   │   ├── twitter.js    # Initiate Twitter OAuth
+│   │   └── callback/
+│   │       └── twitter.js # Twitter OAuth callback
+│   └── admin/
+│       └── delete-wallet.js # Admin endpoint
+├── public/               # Static assets
+└── docker-compose.dev.yml # Redis for development
 ```
 
-### 🔑 Funcionalidades Implementadas
+### 🔑 Implemented Features
 
-#### ✅ Footer Mejorado
-- Mayor contraste en textos
-- Línea de puntos con borde sólido
-- Mejor legibilidad del disclaimer
+#### ✅ Leadership Registry (formerly Leaderboard)
+1. **Connect Wallet**: Users can connect via RainbowKit (MetaMask, Rainbow, Coinbase, etc.)
+2. **Sign Message**: Message signing for authentication with accountability statement
+3. **Balance Verification**: Automatically queries ZEUS + wZEUS balance
+4. **Twitter OAuth**: Full OAuth 2.0 flow with Twitter
+5. **Public Registry**: Displays leaders ranked by total holdings (ZEUS + wZEUS)
 
-#### ✅ Leaderboard Interactivo
-1. **Conectar Wallet**: Los usuarios pueden conectar MetaMask
-2. **Firmar Mensaje**: Se firma un mensaje para autenticación
-3. **Verificación de Balance**: Se consulta automáticamente el balance de ZEUS
-4. **Input de Twitter**: Modal para ingresar cuenta de Twitter (validado con @)
-5. **Ranking**: Se muestra el ranking ordenado por balance de ZEUS
+#### ✅ Governance Page
+- Wrap ZEUS to wZEUS (for voting)
+- Unwrap wZEUS back to ZEUS
+- Check both balances
+- Full ERC20Wrapper integration
 
-#### ✅ Cambios de UI
-- Favicon actualizado desde zeuscoin.vip
-- Enlace "Buy ZEUS Now" apunta a Uniswap con el par correcto
-- Columna de Twitter en el leaderboard con enlaces directos
+#### ✅ UI Improvements
+- Favicon from zeuscoin.vip
+- "Buy ZEUS Now" link points to correct Uniswap pair
+- Twitter column in leaderboard with direct links
+- All dog emojis replaced with Zeus circular image
+- Mobile responsive throughout
 
-### 🧪 Testing Local
+### 🧪 Local Testing
 
-Para probar la funcionalidad completa:
+To test full functionality:
 
-1. **Conecta tu wallet** en el navegador (asegúrate de tener MetaMask)
-2. **Haz clic en "Connect Wallet"** en el leaderboard
-3. **Firma el mensaje** cuando MetaMask lo solicite
-4. **Ingresa tu Twitter** (debe empezar con @)
-5. **Haz clic en "Join Now"**
+1. **Connect your wallet** in the browser (ensure MetaMask is installed)
+2. **Click "Register as Leader"** in the Leadership Registry
+3. **Sign the message** when prompted
+4. **Authenticate with Twitter** via OAuth flow
+5. **Confirm registration**
 
-El sistema:
-- Verificará tu firma
-- Consultará tu balance de ZEUS
-- Te agregará al leaderboard
-- Ordenará por balance
+The system will:
+- Verify your signature
+- Query your ZEUS + wZEUS balance
+- Add you to the leadership registry
+- Sort by total holdings
 
-### 📦 Despliegue en Vercel
+### 📦 Deployment on Vercel
 
-#### Variables de Entorno en Vercel
+#### Environment Variables in Vercel
 
-Configura estos secrets en tu proyecto de Vercel:
+Configure these secrets in your Vercel project:
 
 1. **KV Storage** (Vercel KV):
-   - Crea un KV Store en el dashboard de Vercel
-   - Las variables `KV_REST_API_URL` y `KV_REST_API_TOKEN` se configuran automáticamente
+   - Create a KV Store in Vercel dashboard
+   - Variables `KV_REST_API_URL` and `KV_REST_API_TOKEN` are configured automatically
 
-2. **Opcional - RPC personalizado**:
+2. **Twitter OAuth**:
    ```
-   ETHEREUM_RPC_URL=tu_rpc_url_aquí
+   TWITTER_CLIENT_ID=your_client_id
+   TWITTER_CLIENT_SECRET=your_client_secret
+   TWITTER_CALLBACK_URL=https://your-domain.com/api/auth/callback/twitter
+   ```
+
+3. **Admin**:
+   ```
+   ADMIN_PASSWORD=your_secure_password
+   ```
+
+4. **Optional - Custom RPC**:
+   ```
+   ETHEREUM_RPC_URL=your_rpc_url_here
    ```
 
 #### Deploy
 
 ```bash
-# Login en Vercel
+# Login to Vercel
 vercel login
 
-# Deploy
+# Deploy to production
 vercel --prod
 ```
 
 ### 🐛 Troubleshooting
 
 **Error: "Cannot connect to Redis"**
-- Asegúrate de que Docker está corriendo
-- Verifica que Redis está activo: `docker ps | grep redis`
-- Reinicia Redis: `docker-compose -f docker-compose.dev.yml restart`
+- Ensure Docker is running
+- Verify Redis is active: `docker ps | grep redis`
+- Restart Redis: `docker-compose -f docker-compose.dev.yml restart`
 
 **Error: "Failed to fetch leaderboard"**
-- Verifica que el servidor API está corriendo en el puerto 3001
-- Comprueba los logs: `vercel dev --debug`
+- Verify API server is running on port 3001
+- Check logs: `vercel dev --debug`
 
-**Wallet no se conecta**
-- Asegúrate de tener MetaMask instalado
-- Verifica que estás en Ethereum Mainnet
-- Recarga la página
+**Wallet doesn't connect**
+- Ensure MetaMask is installed
+- Verify you're on Ethereum Mainnet
+- Reload the page
 
-**Balance de ZEUS no aparece**
-- El RPC puede estar lento, espera unos segundos
-- Verifica que tienes ZEUS en tu wallet
-- Comprueba el contrato: `0x0f7dc5d02cc1e1f5ee47854d534d332a1081ccc8`
+**ZEUS balance doesn't appear**
+- RPC may be slow, wait a few seconds
+- Verify you have ZEUS in your wallet
+- Check contract: `0x0f7dc5d02cc1e1f5ee47854d534d332a1081ccc8`
 
-### 🔗 Links Importantes
+### 🔗 Important Links
 
-- Token ZEUS: `0x0f7dc5d02cc1e1f5ee47854d534d332a1081ccc8`
+- ZEUS Token: `0x0f7dc5d02cc1e1f5ee47854d534d332a1081ccc8`
+- wZEUS Token: `0xA56B06AA7Bfa6cbaD8A0b5161ca052d86a5D88E9`
 - Uniswap Swap: https://app.uniswap.org/swap?chain=mainnet&inputCurrency=NATIVE&outputCurrency=0x0f7dc5d02cc1e1f5ee47854d534d332a1081ccc8
 - Vercel Docs: https://vercel.com/docs
 - Vercel KV Docs: https://vercel.com/docs/storage/vercel-kv
 
-### 🤝 Contribuir
+### 🤝 Contributing
 
-Este proyecto está listo para ser desplegado. Las principales mejoras futuras podrían incluir:
+This project is ready for deployment. Future improvements could include:
 
-- [ ] Sistema de caché para reducir consultas al RPC
-- [ ] Soporte para ENS names
-- [ ] Sistema de notificaciones
-- [ ] Integración con más wallets (WalletConnect, Coinbase Wallet)
-- [ ] Tests unitarios y de integración
+- [ ] Caching system to reduce RPC queries
+- [ ] ENS names support
+- [ ] Notification system
+- [ ] Integration with more wallets
+- [ ] Unit and integration tests
 
 ---
 
-**Made with 💙 by the Zeus Army pack** 🐕⚡
+**Built with 💙 by the Zeus Army** 🐕⚡

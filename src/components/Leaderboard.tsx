@@ -351,10 +351,14 @@ const Leaderboard: React.FC = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [joining, setJoining] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    // Refresh balances from blockchain, then fetch leaderboard
-    refreshBalancesAndFetch();
+    // First, load existing data from database immediately
+    fetchLeaderboard();
+
+    // Then, refresh balances from blockchain in background
+    refreshBalancesInBackground();
 
     // Check if we're coming back from Twitter auth
     const urlParams = new URLSearchParams(window.location.search);
@@ -365,7 +369,8 @@ const Leaderboard: React.FC = () => {
       setStatus({ type: 'success', message: 'Successfully registered as leader! Your wallet is now publicly exposed. 📋' });
       window.history.replaceState({}, document.title, window.location.pathname);
       setTimeout(() => {
-        refreshBalancesAndFetch();
+        fetchLeaderboard();
+        refreshBalancesInBackground();
         setStatus(null);
       }, 2000);
     } else if (error) {
@@ -392,18 +397,22 @@ const Leaderboard: React.FC = () => {
     }
   };
 
-  const refreshBalancesAndFetch = async () => {
+  const refreshBalancesInBackground = async () => {
     try {
-      console.log('Refreshing balances from blockchain...');
+      setRefreshing(true);
+      console.log('Refreshing balances from blockchain in background...');
+
       // Call refresh endpoint to update balances from blockchain
       await axios.post('/api/refresh-balances');
-      console.log('Balances refreshed, fetching leaderboard...');
-      // Then fetch the updated leaderboard
+
+      console.log('Balances refreshed, updating leaderboard...');
+      // Fetch the updated data
       await fetchLeaderboard();
+
+      setRefreshing(false);
     } catch (error) {
       console.error('Error refreshing balances:', error);
-      // Even if refresh fails, try to fetch existing data
-      await fetchLeaderboard();
+      setRefreshing(false);
     }
   };
 
@@ -467,6 +476,7 @@ const Leaderboard: React.FC = () => {
           viewport={{ once: true }}
         >
           PROJECT LEADERSHIP REGISTRY 📋
+          {refreshing && <span style={{ fontSize: '0.8rem', marginLeft: '1rem', opacity: 0.6 }}>🔄 Updating...</span>}
         </SectionTitle>
 
         {!leaderboard.find(entry => entry.wallet_address === address?.toLowerCase()) && (

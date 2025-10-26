@@ -87,13 +87,16 @@ module.exports = async (req, res) => {
           wallet_address: entry.wallet_address,
           twitter_handle: entry.twitter_handle || '',
           zeus_balance: entry.zeus_balance || '0',
+          wzeus_balance: entry.wzeus_balance || '0',
+          total_balance: entry.total_balance || entry.zeus_balance || '0',
           supply_percentage: entry.supply_percentage || '0%',
           timestamp: parseInt(entry.timestamp || '0'),
         });
       }
     }
 
-    entries.sort((a, b) => parseFloat(b.zeus_balance) - parseFloat(a.zeus_balance));
+    // Sort by total_balance (ZEUS + wZEUS)
+    entries.sort((a, b) => parseFloat(b.total_balance) - parseFloat(a.total_balance));
 
     return res.status(200).json(entries);
   } catch (error) {

@@ -5,6 +5,7 @@ const { mainnet } = require('viem/chains');
 
 const ETHEREUM_RPC_URL = process.env.ETHEREUM_RPC_URL || 'https://eth.llamarpc.com';
 const ZEUS_TOKEN_ADDRESS = '0x0f7dc5d02cc1e1f5ee47854d534d332a1081ccc8';
+const WZEUS_TOKEN_ADDRESS = '0xA56B06AA7Bfa6cbaD8A0b5161ca052d86a5D88E9';
 
 // Minimal ERC20 ABI for balanceOf
 const ERC20_ABI = parseAbi([
@@ -108,16 +109,22 @@ module.exports = async (req, res) => {
       transport: http(ETHEREUM_RPC_URL)
     });
 
-    const tokenContract = getContract({
+    const zeusContract = getContract({
       address: ZEUS_TOKEN_ADDRESS,
+      abi: ERC20_ABI,
+      client: client
+    });
+
+    const wzeusContract = getContract({
+      address: WZEUS_TOKEN_ADDRESS,
       abi: ERC20_ABI,
       client: client
     });
 
     // Get decimals and total supply once
     const [decimals, totalSupply] = await Promise.all([
-      tokenContract.read.decimals(),
-      tokenContract.read.totalSupply()
+      zeusContract.read.decimals(),
+      zeusContract.read.totalSupply()
     ]);
 
     const totalSupplyFormatted = Number(totalSupply) / Math.pow(10, Number(decimals));
@@ -133,23 +140,32 @@ module.exports = async (req, res) => {
           continue;
         }
 
-        // Get current balance from blockchain
-        const balance = await tokenContract.read.balanceOf([entry.wallet_address]);
-        const balanceFormatted = Number(balance) / Math.pow(10, Number(decimals));
-        const supplyPercentage = ((balanceFormatted / totalSupplyFormatted) * 100).toFixed(6);
+        // Get current balances from blockchain (ZEUS + wZEUS)
+        const [zeusBalance, wzeusBalance] = await Promise.all([
+          zeusContract.read.balanceOf([entry.wallet_address]),
+          wzeusContract.read.balanceOf([entry.wallet_address])
+        ]);
+
+        const zeusBalanceFormatted = Number(zeusBalance) / Math.pow(10, Number(decimals));
+        const wzeusBalanceFormatted = Number(wzeusBalance) / Math.pow(10, Number(decimals));
+        const totalBalanceFormatted = zeusBalanceFormatted + wzeusBalanceFormatted;
+
+        const supplyPercentage = ((totalBalanceFormatted / totalSupplyFormatted) * 100).toFixed(6);
 
         // Update in Redis
         await kv.hset(`leaderboard:${address}`, {
           wallet_address: entry.wallet_address,
           twitter_handle: entry.twitter_handle || '',
-          zeus_balance: balanceFormatted.toString(),
+          zeus_balance: zeusBalanceFormatted.toString(),
+          wzeus_balance: wzeusBalanceFormatted.toString(),
+          total_balance: totalBalanceFormatted.toString(),
           supply_percentage: `${supplyPercentage}%`,
           timestamp: entry.timestamp || Date.now().toString(),
           last_refresh: Date.now().toString()
         });
 
         updatedCount++;
-        console.log(`Updated ${entry.wallet_address}: ${balanceFormatted} ZEUS (${supplyPercentage}%)`);
+        console.log(`Updated ${entry.wallet_address}: ${zeusBalanceFormatted} ZEUS + ${wzeusBalanceFormatted} wZEUS = ${totalBalanceFormatted} total (${supplyPercentage}%)`);
       } catch (error) {
         console.error(`Error updating wallet ${address}:`, error.message);
       }

@@ -341,6 +341,8 @@ interface LeaderboardEntry {
   wallet_address: string;
   twitter_handle: string;
   zeus_balance: string;
+  wzeus_balance?: string;
+  total_balance?: string;
   supply_percentage?: string;
   timestamp: number;
 }
@@ -501,6 +503,9 @@ const Leaderboard: React.FC = () => {
                 This registry exists for transparency, accountability, and community protection. By exposing your wallet publicly,
                 you allow the community to audit your holdings and ensure proper management of privileged information.
               </p>
+              <p>
+                <strong>🚀 In this community, whales don't manipulate the price: they commit to the project long-term. What could be more bullish than that?</strong>
+              </p>
               <p><strong>Why this registry is mandatory for leaders:</strong></p>
               <ul>
                 <li>🔍 <strong>Transparency:</strong> The community can audit your ZEUS holdings and transactions</li>
@@ -580,7 +585,7 @@ const Leaderboard: React.FC = () => {
                   </TwitterLink>
                 )}
               </div>
-              <Balance>{formatSupplyPercentage(entry.zeus_balance)}</Balance>
+              <Balance>{formatSupplyPercentage(entry.total_balance || entry.zeus_balance)}</Balance>
             </TableRow>
           ))}
 

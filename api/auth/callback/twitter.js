@@ -8,6 +8,7 @@ const TWITTER_CLIENT_SECRET = process.env.TWITTER_CLIENT_SECRET || '';
 const CALLBACK_URL = process.env.TWITTER_CALLBACK_URL || 'https://zeus.army/api/auth/callback/twitter';
 const ETHEREUM_RPC_URL = process.env.ETHEREUM_RPC_URL || 'https://eth.llamarpc.com';
 const ZEUS_TOKEN_ADDRESS = '0x0f7dc5d02cc1e1f5ee47854d534d332a1081ccc8';
+const WZEUS_TOKEN_ADDRESS = '0xA56B06AA7Bfa6cbaD8A0b5161ca052d86a5D88E9';
 
 // Minimal ERC20 ABI for balanceOf
 const ERC20_ABI = parseAbi([
@@ -109,21 +110,32 @@ module.exports = async (req, res) => {
       transport: http(ETHEREUM_RPC_URL)
     });
 
-    const tokenContract = getContract({
+    const zeusContract = getContract({
       address: ZEUS_TOKEN_ADDRESS,
       abi: ERC20_ABI,
       client: client
     });
 
-    const [balance, decimals, totalSupply] = await Promise.all([
-      tokenContract.read.balanceOf([address]),
-      tokenContract.read.decimals(),
-      tokenContract.read.totalSupply()
+    const wzeusContract = getContract({
+      address: WZEUS_TOKEN_ADDRESS,
+      abi: ERC20_ABI,
+      client: client
+    });
+
+    const [zeusBalance, wzeusBalance, decimals, totalSupply] = await Promise.all([
+      zeusContract.read.balanceOf([address]),
+      wzeusContract.read.balanceOf([address]),
+      zeusContract.read.decimals(),
+      zeusContract.read.totalSupply()
     ]);
 
-    const balanceFormatted = Number(balance) / Math.pow(10, Number(decimals));
+    // Calculate total balance (ZEUS + wZEUS, since wZEUS is 1:1 wrapper)
+    const zeusBalanceFormatted = Number(zeusBalance) / Math.pow(10, Number(decimals));
+    const wzeusBalanceFormatted = Number(wzeusBalance) / Math.pow(10, Number(decimals));
+    const totalBalanceFormatted = zeusBalanceFormatted + wzeusBalanceFormatted;
+
     const totalSupplyFormatted = Number(totalSupply) / Math.pow(10, Number(decimals));
-    const supplyPercentage = ((balanceFormatted / totalSupplyFormatted) * 100).toFixed(6);
+    const supplyPercentage = ((totalBalanceFormatted / totalSupplyFormatted) * 100).toFixed(6);
 
     // Check if wallet already exists
     const existingWallet = await kv.get(`wallet:${address.toLowerCase()}`);
@@ -136,16 +148,18 @@ module.exports = async (req, res) => {
     const walletData = {
       wallet_address: address.toLowerCase(),
       twitter_handle: twitterHandle,
-      zeus_balance: balanceFormatted.toString(),
+      zeus_balance: zeusBalanceFormatted.toString(),
+      wzeus_balance: wzeusBalanceFormatted.toString(),
+      total_balance: totalBalanceFormatted.toString(),
       supply_percentage: `${supplyPercentage}%`,
       timestamp: Date.now()
     };
 
     await kv.set(`wallet:${address.toLowerCase()}`, JSON.stringify(walletData));
 
-    // Add to sorted set for leaderboard (score is the balance)
+    // Add to sorted set for leaderboard (score is the total balance including wZEUS)
     await kv.zadd('leaderboard', {
-      score: parseFloat(balanceFormatted),
+      score: parseFloat(totalBalanceFormatted),
       member: address.toLowerCase()
     });
 

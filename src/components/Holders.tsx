@@ -176,36 +176,6 @@ const SearchButton = styled.button`
   }
 `;
 
-const ClearButton = styled.button`
-  padding: 1rem 2rem;
-  border-radius: 12px;
-  border: 3px solid #000;
-  background: linear-gradient(135deg, #1E90FF 0%, #00BFFF 100%);
-  color: #000;
-  font-family: var(--font-body);
-  font-size: 1rem;
-  font-weight: 900;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  box-shadow: 0 6px 0 #000, 0 6px 20px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 0 #000, 0 8px 25px rgba(0, 0, 0, 0.4);
-  }
-
-  &:active {
-    transform: translateY(1px);
-    box-shadow: 0 3px 0 #000, 0 3px 15px rgba(0, 0, 0, 0.3);
-  }
-
-  @media (max-width: 768px) {
-    width: 100%;
-  }
-`;
-
 const HistoryContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -213,23 +183,30 @@ const HistoryContainer = styled.div`
   justify-content: center;
 `;
 
-const HistoryButton = styled.button`
+const HistoryButton = styled.button<{ $isActive: boolean }>`
   padding: 0.5rem 1rem;
   border-radius: 20px;
-  border: 2px solid rgba(255, 215, 0, 0.4);
-  background: rgba(26, 31, 58, 0.6);
-  color: var(--color-text-light);
+  border: 2px solid ${props => props.$isActive ? 'var(--color-primary)' : 'rgba(255, 215, 0, 0.4)'};
+  background: ${props => props.$isActive
+    ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.3) 0%, rgba(255, 165, 0, 0.3) 100%)'
+    : 'rgba(26, 31, 58, 0.6)'};
+  color: ${props => props.$isActive ? 'var(--color-primary)' : 'var(--color-text-light)'};
   font-family: 'Courier New', monospace;
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: ${props => props.$isActive ? '700' : '600'};
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  box-shadow: ${props => props.$isActive
+    ? '0 0 15px rgba(255, 215, 0, 0.4), inset 0 0 15px rgba(255, 215, 0, 0.2)'
+    : 'none'};
 
   &:hover {
-    background: rgba(26, 31, 58, 0.9);
+    background: ${props => props.$isActive
+      ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.4) 0%, rgba(255, 165, 0, 0.4) 100%)'
+      : 'rgba(26, 31, 58, 0.9)'};
     border-color: var(--color-primary);
     transform: translateY(-2px);
   }
@@ -745,19 +722,22 @@ const Holders: React.FC = () => {
     setSearchHistory(newHistory);
   };
 
-  const handleClearSearch = () => {
-    setSearchAddress('');
-    setError('');
-    setOffset(0);
-    setIsSearching(false);
-    fetchHolders(0, 10);
-  };
-
   const handleHistoryClick = (address: string) => {
-    setSearchAddress(address);
-    setError('');
-    setOffset(0);
-    fetchHolders(0, 10, false, address);
+    // Check if this address is already active (toggle behavior)
+    if (searchAddress.toLowerCase() === address.toLowerCase() && isSearching) {
+      // Deactivate filter - return to full leaderboard
+      setSearchAddress('');
+      setError('');
+      setOffset(0);
+      setIsSearching(false);
+      fetchHolders(0, 10);
+    } else {
+      // Activate filter for this address
+      setSearchAddress(address);
+      setError('');
+      setOffset(0);
+      fetchHolders(0, 10, false, address);
+    }
   };
 
   const handleDeleteHistory = (address: string, e: React.MouseEvent) => {
@@ -884,26 +864,25 @@ const Holders: React.FC = () => {
             <SearchButton onClick={handleSearch} disabled={!searchAddress.trim()}>
               Search
             </SearchButton>
-            {isSearching && (
-              <ClearButton onClick={handleClearSearch}>
-                Clear
-              </ClearButton>
-            )}
           </SearchWrapper>
 
           {searchHistory.length > 0 && (
             <HistoryContainer>
-              {searchHistory.map((addr, index) => (
-                <HistoryButton
-                  key={index}
-                  onClick={() => handleHistoryClick(addr)}
-                >
-                  {addr.length > 12 ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : addr}
-                  <DeleteIcon onClick={(e) => handleDeleteHistory(addr, e)}>
-                    ×
-                  </DeleteIcon>
-                </HistoryButton>
-              ))}
+              {searchHistory.map((addr, index) => {
+                const isActive = isSearching && searchAddress.toLowerCase() === addr.toLowerCase();
+                return (
+                  <HistoryButton
+                    key={index}
+                    $isActive={isActive}
+                    onClick={() => handleHistoryClick(addr)}
+                  >
+                    {addr.length > 12 ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : addr}
+                    <DeleteIcon onClick={(e) => handleDeleteHistory(addr, e)}>
+                      ×
+                    </DeleteIcon>
+                  </HistoryButton>
+                );
+              })}
             </HistoryContainer>
           )}
         </SearchContainer>

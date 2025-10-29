@@ -423,13 +423,12 @@ const TableRow = styled.div<{ isTop3: boolean }>`
     grid-template-columns: 35px 1fr 80px 90px;
     gap: 0.3rem;
     padding: 0.75rem 0.5rem;
-    padding-left: ${props => props.isTop3 ? '2rem' : '0.5rem'};
+    padding-left: 0.5rem; /* Remove extra padding since trophy is hidden */
     font-size: 0.75rem;
 
     ${props => props.isTop3 && `
       &::before {
-        font-size: 0.9rem;
-        left: 0.2rem;
+        display: none; /* Hide trophy on mobile */
       }
     `}
   }
@@ -581,13 +580,24 @@ const SubRow = styled.div`
     grid-template-columns: 50px 1fr 110px 110px 110px 120px;
     padding-left: 3.5rem;
     margin-left: 2.5rem;
+    gap: 0.5rem;
   }
 
   @media (max-width: 768px) {
-    grid-template-columns: 35px 1fr 80px 90px;
-    padding: 0.5rem 0.5rem 0.5rem 2rem;
-    margin-left: 1.5rem;
+    grid-template-columns: 1fr 95px;
+    padding: 0.5rem 0.5rem 0.5rem 1.5rem;
+    margin: 0.15rem 0 0.15rem 1rem;
+    gap: 0.5rem;
     font-size: 0.7rem;
+
+    /* Hide rank, ZEUS, wZEUS, LP ZEUS, Total columns on mobile */
+    & > div:nth-child(1),
+    & > div:nth-child(3),
+    & > div:nth-child(4),
+    & > div:nth-child(5),
+    & > div:nth-child(6) {
+      display: none;
+    }
   }
 `;
 

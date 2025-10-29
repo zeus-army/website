@@ -1157,8 +1157,10 @@ const MakeIt: React.FC = () => {
       <Container>
         <SectionTitle>Make It</SectionTitle>
         <Description>
-          Meme communities are groups of individuals united by shared culture, creating wealth together.
-          See what your holdings would be worth if ZEUS achieves its mission. Join us and make it happen.
+          We are more than holders—we are builders of a shared destiny. United by memes, driven by vision,
+          bound by community. This is where culture meets capital, where diamond hands forge generational wealth.
+          See the future value of your position when ZEUS conquers its mission. The question isn't if—it's when.
+          Will you be there when we make it?
         </Description>
 
         <MarketCapSelector>

@@ -596,9 +596,11 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { offset = '0', limit = '10', address } = req.query;
+    const { offset = '0', limit = '10', address, lpOnly, lpOffset = '0', lpLimit = '5' } = req.query;
     const offsetNum = parseInt(offset);
     const limitNum = parseInt(limit);
+    const lpOffsetNum = parseInt(lpOffset);
+    const lpLimitNum = parseInt(lpLimit);
 
     // Create viem client
     const client = createPublicClient({
@@ -627,6 +629,50 @@ module.exports = async (req, res) => {
     ]);
 
     console.log(`ZEUS Price: $${zeusPrice}`);
+
+    // If lpOnly is requested, return only LP holders
+    if (lpOnly === 'true') {
+      const lpHoldersRaw = await getUniswapLPHolders(client, decimals);
+      const lpHoldersSlice = lpHoldersRaw.slice(lpOffsetNum, lpOffsetNum + lpLimitNum);
+
+      // Format LP holders with all data
+      const lpHoldersFormatted = await Promise.all(
+        lpHoldersSlice.map(async (holder) => {
+          const ensName = await resolveENS(holder.address, client);
+          const rawBalance = getRawBalance(holder.balance, decimals);
+          const usdValue = rawBalance * zeusPrice;
+          const supplyPercentage = ((rawBalance / getRawBalance(totalSupply.toString(), decimals)) * 100).toFixed(4);
+
+          return {
+            rank: lpOffsetNum + lpHoldersSlice.indexOf(holder) + 1,
+            address: holder.address,
+            ensName: ensName,
+            zeusBalance: formatBalance('0', decimals),
+            wzeusBalance: formatBalance('0', decimals),
+            lpZeusBalance: formatBalance(holder.balance, decimals),
+            totalBalance: formatBalance(holder.balance, decimals),
+            totalBalanceRaw: rawBalance,
+            usdValue: usdValue.toFixed(2),
+            supplyPercentage: `${supplyPercentage}%`,
+            isLPPosition: true
+          };
+        })
+      );
+
+      return res.status(200).json({
+        success: true,
+        data: lpHoldersFormatted,
+        price: zeusPrice,
+        marketCap: 0,
+        wzeusValue: 0,
+        totalSupply: 0,
+        wzeusSupply: 0,
+        offset: lpOffsetNum,
+        limit: lpLimitNum,
+        count: lpHoldersFormatted.length,
+        totalLPHolders: lpHoldersRaw.length
+      });
+    }
 
     let holders = [];
 

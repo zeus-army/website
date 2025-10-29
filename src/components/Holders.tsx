@@ -742,8 +742,22 @@ const Holders: React.FC = () => {
 
   const handleDeleteHistory = (address: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const newHistory = removeFromSearchHistory(address);
-    setSearchHistory(newHistory);
+
+    // Check if this address is currently active
+    const isCurrentlyActive = searchAddress.toLowerCase() === address.toLowerCase() && isSearching;
+
+    if (isCurrentlyActive) {
+      // Deactivate filter but keep in history
+      setSearchAddress('');
+      setError('');
+      setOffset(0);
+      setIsSearching(false);
+      fetchHolders(0, 10);
+    } else {
+      // Remove from history
+      const newHistory = removeFromSearchHistory(address);
+      setSearchHistory(newHistory);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

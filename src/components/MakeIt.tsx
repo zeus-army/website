@@ -1247,7 +1247,7 @@ const MakeIt: React.FC = () => {
 
           <HighlightBox>
             <p>
-              <strong>Our mission: reach $2.2B</strong>—20% of PEPE's all-time high market cap. Beta plays typically reach
+              <strong>Our mission: reach $2.2B</strong>—20% of PEPE's all-time high market cap. Beta plays typically reach{' '}
               <strong>20% of their reference coin's ATH</strong>. PEPE achieved <strong>$11 billion</strong> at its peak,
               making <strong>$2.2 billion</strong> our north star.
             </p>

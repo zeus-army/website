@@ -99,26 +99,51 @@ function getRawBalance(balance, decimals) {
   return Number(balance) / Math.pow(10, Number(decimals));
 }
 
-// Fetch ZEUS price from CoinGecko
+// Fetch ZEUS price from CoinGecko (with fallback to Dexscreener)
 async function fetchZeusPrice() {
+  // Try CoinGecko first
+  if (COINGECKO_API_KEY) {
+    try {
+      // Use Pro API endpoint for Pro API keys
+      const baseUrl = 'https://pro-api.coingecko.com/api/v3';
+      const url = `${baseUrl}/simple/token_price/ethereum?contract_addresses=${ZEUS_TOKEN_ADDRESS}&vs_currencies=usd&x_cg_pro_api_key=${COINGECKO_API_KEY}`;
+      const response = await fetch(url);
+
+      if (response.ok) {
+        const data = await response.json();
+        const price = data[ZEUS_TOKEN_ADDRESS.toLowerCase()]?.usd || 0;
+        if (price > 0) {
+          console.log('ZEUS price from CoinGecko:', price);
+          return price;
+        }
+      } else {
+        console.error('CoinGecko API error:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('Error fetching from CoinGecko:', error.message);
+    }
+  }
+
+  // Fallback to Dexscreener
   try {
-    // Use contract address to get price (more reliable)
-    const url = `https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=${ZEUS_TOKEN_ADDRESS}&vs_currencies=usd${COINGECKO_API_KEY ? `&x_cg_demo_api_key=${COINGECKO_API_KEY}` : ''}`;
+    console.log('Fetching price from Dexscreener...');
+    const url = `https://api.dexscreener.com/latest/dex/tokens/${ZEUS_TOKEN_ADDRESS}`;
     const response = await fetch(url);
 
-    if (!response.ok) {
-      console.error('CoinGecko API error:', response.status, response.statusText);
-      return 0;
+    if (response.ok) {
+      const data = await response.json();
+      if (data.pairs && data.pairs.length > 0) {
+        const price = parseFloat(data.pairs[0].priceUsd) || 0;
+        console.log('ZEUS price from Dexscreener:', price);
+        return price;
+      }
     }
-
-    const data = await response.json();
-    const price = data[ZEUS_TOKEN_ADDRESS.toLowerCase()]?.usd || 0;
-    console.log('ZEUS price from CoinGecko:', price);
-    return price;
   } catch (error) {
-    console.error('Error fetching ZEUS price:', error);
-    return 0;
+    console.error('Error fetching from Dexscreener:', error.message);
   }
+
+  console.error('Could not fetch ZEUS price from any source');
+  return 0;
 }
 
 // Resolve ENS name for an address

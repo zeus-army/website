@@ -105,7 +105,7 @@ const TableWrapper = styled.div`
     0 8px 32px 0 rgba(31, 38, 135, 0.37),
     inset 0 0 30px rgba(255, 215, 0, 0.1);
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* Changed from hidden to visible to show trophy */
 
   &::before {
     content: '';
@@ -122,6 +122,7 @@ const TableWrapper = styled.div`
     );
     transform: rotate(45deg);
     animation: shimmer 3s infinite;
+    pointer-events: none;
   }
 
   @keyframes shimmer {
@@ -223,6 +224,7 @@ const TableHeaderCell = styled.div`
 const TableBody = styled.div`
   max-height: 600px;
   overflow-y: auto;
+  overflow-x: visible; /* Allow trophy emoji to show */
   padding-right: 10px;
 
   /* Custom scrollbar */
@@ -250,6 +252,7 @@ const TableRow = styled.div<{ isTop3: boolean }>`
   grid-template-columns: 60px 1fr 150px 150px 150px 150px;
   gap: 1rem;
   padding: 1rem;
+  padding-left: ${props => props.isTop3 ? '3rem' : '1rem'}; /* Extra padding for trophy */
   background: ${props => props.isTop3
     ? 'linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 165, 0, 0.1) 100%)'
     : 'rgba(26, 31, 58, 0.4)'};
@@ -270,10 +273,11 @@ const TableRow = styled.div<{ isTop3: boolean }>`
       content: '🏆';
       position: absolute;
       top: 50%;
-      left: -10px;
+      left: 0.5rem;
       transform: translateY(-50%);
       font-size: 1.5rem;
       animation: bounce 2s infinite;
+      z-index: 1;
     }
 
     @keyframes bounce {
@@ -295,11 +299,27 @@ const TableRow = styled.div<{ isTop3: boolean }>`
     grid-template-columns: 50px 1fr 120px 120px 120px;
     gap: 0.5rem;
     font-size: 0.9rem;
+    padding-left: ${props => props.isTop3 ? '2.5rem' : '1rem'};
+
+    ${props => props.isTop3 && `
+      &::before {
+        font-size: 1.2rem;
+        left: 0.4rem;
+      }
+    `}
   }
 
   @media (max-width: 768px) {
     grid-template-columns: 40px 1fr 100px 100px;
     font-size: 0.8rem;
+    padding-left: ${props => props.isTop3 ? '2rem' : '0.5rem'};
+
+    ${props => props.isTop3 && `
+      &::before {
+        font-size: 1rem;
+        left: 0.3rem;
+      }
+    `}
   }
 `;
 

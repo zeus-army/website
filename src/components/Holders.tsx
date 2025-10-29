@@ -194,8 +194,10 @@ const TableHeader = styled.div`
   }
 
   @media (max-width: 768px) {
-    grid-template-columns: 40px 1fr 100px 100px;
-    font-size: 0.8rem;
+    grid-template-columns: 35px 1fr 80px 90px;
+    gap: 0.3rem;
+    padding: 0.75rem 0.5rem;
+    font-size: 0.75rem;
   }
 `;
 
@@ -310,14 +312,16 @@ const TableRow = styled.div<{ isTop3: boolean }>`
   }
 
   @media (max-width: 768px) {
-    grid-template-columns: 40px 1fr 100px 100px;
-    font-size: 0.8rem;
+    grid-template-columns: 35px 1fr 80px 90px;
+    gap: 0.3rem;
+    padding: 0.75rem 0.5rem;
     padding-left: ${props => props.isTop3 ? '2rem' : '0.5rem'};
+    font-size: 0.75rem;
 
     ${props => props.isTop3 && `
       &::before {
-        font-size: 1rem;
-        left: 0.3rem;
+        font-size: 0.9rem;
+        left: 0.2rem;
       }
     `}
   }
@@ -326,6 +330,8 @@ const TableRow = styled.div<{ isTop3: boolean }>`
 const TableCell = styled.div`
   display: flex;
   align-items: center;
+  word-break: break-word;
+  overflow: hidden;
 
   &:nth-child(3),
   &:nth-child(4),
@@ -341,6 +347,12 @@ const TableCell = styled.div`
     &:nth-child(4) {
       display: none;
     }
+
+    /* Ensure address doesn't overflow */
+    &:nth-child(2) {
+      min-width: 0;
+      overflow: hidden;
+    }
   }
 `;
 
@@ -353,6 +365,10 @@ const Rank = styled.div<{ rank: number }>`
     if (props.rank === 3) return '#CD7F32';
     return 'var(--color-text-light)';
   }};
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+  }
 `;
 
 const AddressLink = styled.a`
@@ -362,11 +378,19 @@ const AddressLink = styled.a`
   font-weight: 600;
   transition: all 0.3s ease;
   display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 
   &:hover {
     color: var(--color-primary);
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
     transform: scale(1.05);
+  }
+
+  @media (max-width: 768px) {
+    font-size: 0.7rem;
   }
 `;
 
@@ -378,12 +402,20 @@ const ENSName = styled.span`
 const Balance = styled.div`
   font-weight: 600;
   color: var(--color-text-light);
+
+  @media (max-width: 768px) {
+    font-size: 0.7rem;
+  }
 `;
 
 const USDValue = styled.div`
   font-weight: 700;
   color: #4BB749;
   font-size: 1.1rem;
+
+  @media (max-width: 768px) {
+    font-size: 0.7rem;
+  }
 `;
 
 const LoadingMessage = styled.div`

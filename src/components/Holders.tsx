@@ -535,6 +535,22 @@ const Holders: React.FC = () => {
     return sortOrder === 'asc' ? compareValue : -compareValue;
   });
 
+  // Format USD value with K/M suffix and American format
+  const formatUSD = (value: string): string => {
+    const num = parseFloat(value);
+
+    if (num >= 1_000_000) {
+      return `$${(num / 1_000_000).toFixed(2)}M`;
+    } else if (num >= 1_000) {
+      return `$${(num / 1_000).toFixed(2)}K`;
+    } else if (num >= 1) {
+      return `$${num.toFixed(2)}`;
+    } else {
+      // For very small values, show more decimals
+      return `$${num.toFixed(6)}`;
+    }
+  };
+
   // Format address for display
   const formatAddress = (address: string, ensName: string | null) => {
     const zapperUrl = `https://zapper.xyz/es/account/${ensName || address}`;
@@ -643,7 +659,7 @@ const Holders: React.FC = () => {
                     <Balance>{holder.totalBalance}</Balance>
                   </TableCell>
                   <TableCell>
-                    <USDValue>${holder.usdValue}</USDValue>
+                    <USDValue>{formatUSD(holder.usdValue)}</USDValue>
                   </TableCell>
                 </TableRow>
               ))}

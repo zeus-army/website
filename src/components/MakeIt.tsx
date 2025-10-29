@@ -904,7 +904,7 @@ const MakeIt: React.FC = () => {
   const [wzeusOffset, setWzeusOffset] = useState<{ [key: string]: number }>({});
   const [wzeusLoading, setWzeusLoading] = useState<{ [key: string]: boolean }>({});
   const [totalWZEUSHolders, setTotalWZEUSHolders] = useState<number>(0);
-  const [targetMarketCap, setTargetMarketCap] = useState<number>(1_000_000_000); // Default 1B
+  const [targetMarketCap, setTargetMarketCap] = useState<number>(2_200_000_000); // Default 2.2B
   const tableBodyRef = useRef<HTMLDivElement>(null);
 
   // Load search history on mount
@@ -1341,9 +1341,9 @@ const MakeIt: React.FC = () => {
 
                 return (
                   <React.Fragment key={holder.address}>
-                    <TableRow isTop3={holder.rank <= 3}>
+                    <TableRow isTop3={!!holder.rank && holder.rank <= 3}>
                       <TableCell>
-                        <Rank rank={holder.rank}>#{holder.rank}</Rank>
+                        <Rank rank={holder.rank || 999}>{holder.rank ? `#${holder.rank}` : '>300'}</Rank>
                       </TableCell>
                       <TableCell>
                         {isExpandable && (

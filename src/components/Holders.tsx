@@ -1172,9 +1172,9 @@ const Holders: React.FC = () => {
 
                 return (
                   <React.Fragment key={holder.address}>
-                    <TableRow isTop3={holder.rank <= 3}>
+                    <TableRow isTop3={!!holder.rank && holder.rank <= 3}>
                       <TableCell>
-                        <Rank rank={holder.rank}>#{holder.rank}</Rank>
+                        <Rank rank={holder.rank || 999}>{holder.rank ? `#${holder.rank}` : '>300'}</Rank>
                       </TableCell>
                       <TableCell>
                         {isExpandable && (

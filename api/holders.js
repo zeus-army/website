@@ -653,8 +653,39 @@ async function searchAddress(address, viemClient, decimals, totalSupply, zeusPri
     const usdValue = rawTotal * zeusPrice;
     const supplyPercentage = ((rawTotal / getRawBalance(totalSupply.toString(), decimals)) * 100).toFixed(4);
 
+    // Calculate global rank by fetching all holders
+    let rank = null;
+    try {
+      console.log('Calculating global rank for address:', address);
+
+      // Fetch all holders from all sources
+      const [zeusHolders, wzeusHolders, lpHolders] = await Promise.all([
+        fetchHoldersWithAlchemy(viemClient, ZEUS_TOKEN_ADDRESS, 500),
+        fetchHoldersWithAlchemy(viemClient, WZEUS_TOKEN_ADDRESS, 500),
+        getUniswapLPHolders(viemClient, decimals)
+      ]);
+
+      // Aggregate all holders
+      const aggregated = await aggregateHolders(zeusHolders, wzeusHolders, lpHolders);
+
+      // Find the rank of the searched address
+      const rankIndex = aggregated.findIndex(holder =>
+        holder.address.toLowerCase() === normalizedAddress
+      );
+
+      if (rankIndex !== -1) {
+        rank = rankIndex + 1;
+        console.log(`Found rank ${rank} for address ${address}`);
+      } else {
+        console.log(`Address ${address} not found in aggregated holders list`);
+      }
+    } catch (rankError) {
+      console.error('Error calculating rank:', rankError);
+      // Continue without rank if calculation fails
+    }
+
     return {
-      rank: null, // Will be calculated if needed
+      rank: rank,
       address: address,
       ensName: ensName,
       zeusBalance: formatBalance(zeusBalanceBigInt.toString(), decimals),

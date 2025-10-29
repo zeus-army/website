@@ -218,7 +218,7 @@ const Navbar: React.FC = () => {
         <NavLinks>
           <NavLink href="/#mission">Mission</NavLink>
           <NavLink href="/#roadmap">Roadmap</NavLink>
-          <NavLink href="/#leaderboard">Whales</NavLink>
+          <NavLink href="/#leaderboard">Leaders</NavLink>
           <NavLinkRouter to="/holders">Holders</NavLinkRouter>
           <NavLinkRouter to="/governance">Governance</NavLinkRouter>
         </NavLinks>
@@ -233,7 +233,7 @@ const Navbar: React.FC = () => {
       <MobileMenuContainer $isOpen={mobileMenuOpen}>
         <MobileNavLink href="/#mission" onClick={() => setMobileMenuOpen(false)}>Mission</MobileNavLink>
         <MobileNavLink href="/#roadmap" onClick={() => setMobileMenuOpen(false)}>Roadmap</MobileNavLink>
-        <MobileNavLink href="/#leaderboard" onClick={() => setMobileMenuOpen(false)}>Whales</MobileNavLink>
+        <MobileNavLink href="/#leaderboard" onClick={() => setMobileMenuOpen(false)}>Leaders</MobileNavLink>
         <MobileNavLinkRouter to="/holders" onClick={() => setMobileMenuOpen(false)}>Holders</MobileNavLinkRouter>
         <MobileNavLinkRouter to="/governance" onClick={() => setMobileMenuOpen(false)}>Governance</MobileNavLinkRouter>
       </MobileMenuContainer>

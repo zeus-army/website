@@ -218,7 +218,7 @@ const roadmapData = [
     icon: '/images/zeus.jpg',
     items: [
       'Create token-gated Telegram channels',
-      'Alpha for whales in the Telegram Whales channel',
+      'Alpha for leaders in the Telegram Leaders channel',
       'Periodic video interviews with NDhaus (creator of ZEUS)'
     ]
   },

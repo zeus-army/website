@@ -117,7 +117,7 @@ const Footer: React.FC = () => {
         <FooterLinks>
           <FooterLink href="/#mission">Mission</FooterLink>
           <FooterLink href="/#roadmap">Roadmap</FooterLink>
-          <FooterLink href="/#leaderboard">Whales</FooterLink>
+          <FooterLink href="/#leaderboard">Leaders</FooterLink>
           <FooterLinkRouter to="/holders">Holders</FooterLinkRouter>
           <FooterLinkRouter to="/governance">Governance</FooterLinkRouter>
         </FooterLinks>

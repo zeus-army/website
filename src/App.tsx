@@ -9,6 +9,7 @@ import { GlobalStyles } from './styles/GlobalStyles';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import GovernancePage from './pages/GovernancePage';
+import HoldersPage from './pages/HoldersPage';
 import Footer from './components/Footer';
 
 const queryClient = new QueryClient();
@@ -61,6 +62,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/governance" element={<GovernancePage />} />
+                  <Route path="/holders" element={<HoldersPage />} />
                 </Routes>
               </main>
               <Footer />

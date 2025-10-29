@@ -534,6 +534,92 @@ const USDValue = styled.div`
   }
 `;
 
+const ExpandButton = styled.button`
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0 0.5rem;
+  transition: transform 0.3s ease;
+
+  &.expanded {
+    transform: rotate(90deg);
+  }
+
+  &:hover {
+    transform: scale(1.2);
+  }
+
+  &.expanded:hover {
+    transform: rotate(90deg) scale(1.2);
+  }
+`;
+
+const SubRow = styled.div`
+  display: grid;
+  grid-template-columns: 60px 1fr 130px 130px 130px 150px 150px;
+  gap: 1rem;
+  padding: 0.75rem 1rem 0.75rem 4rem;
+  background: rgba(165, 94, 234, 0.1);
+  border-left: 3px solid rgba(165, 94, 234, 0.5);
+  margin: 0.25rem 0 0.25rem 3rem;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(165, 94, 234, 0.15);
+    border-left-color: rgba(165, 94, 234, 0.8);
+  }
+
+  @media (max-width: 1200px) {
+    grid-template-columns: 50px 1fr 110px 110px 110px 120px;
+    padding-left: 3.5rem;
+    margin-left: 2.5rem;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 35px 1fr 80px 90px;
+    padding: 0.5rem 0.5rem 0.5rem 2rem;
+    margin-left: 1.5rem;
+    font-size: 0.7rem;
+  }
+`;
+
+const ShowMoreLPButton = styled.button`
+  margin: 0.5rem 0 0.5rem 3rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, rgba(165, 94, 234, 0.3), rgba(138, 75, 194, 0.3));
+  border: 2px solid rgba(165, 94, 234, 0.5);
+  border-radius: 8px;
+  color: var(--color-text-light);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: linear-gradient(135deg, rgba(165, 94, 234, 0.4), rgba(138, 75, 194, 0.4));
+    border-color: rgba(165, 94, 234, 0.8);
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 768px) {
+    margin-left: 1.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+  }
+`;
+
 const LoadingMessage = styled.div`
   text-align: center;
   padding: 2rem;
@@ -671,6 +757,11 @@ const Holders: React.FC = () => {
   const [searchAddress, setSearchAddress] = useState<string>('');
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [lpHolders, setLpHolders] = useState<{ [key: string]: Holder[] }>({});
+  const [lpOffset, setLpOffset] = useState<{ [key: string]: number }>({});
+  const [lpLoading, setLpLoading] = useState<{ [key: string]: boolean }>({});
+  const [totalLPHolders, setTotalLPHolders] = useState<number>(0);
   const tableBodyRef = useRef<HTMLDivElement>(null);
 
   // Load search history on mount
@@ -785,6 +876,56 @@ const Holders: React.FC = () => {
     if (e.key === 'Enter') {
       handleSearch();
     }
+  };
+
+  // Toggle row expansion for Uniswap pool
+  const toggleRowExpansion = async (address: string) => {
+    const newExpanded = new Set(expandedRows);
+
+    if (expandedRows.has(address)) {
+      // Collapse
+      newExpanded.delete(address);
+      setExpandedRows(newExpanded);
+    } else {
+      // Expand and fetch LP holders
+      newExpanded.add(address);
+      setExpandedRows(newExpanded);
+
+      // Only fetch if we don't have data yet
+      if (!lpHolders[address]) {
+        await fetchLPHolders(address, 0);
+      }
+    }
+  };
+
+  // Fetch LP holders for a specific pool address
+  const fetchLPHolders = async (poolAddress: string, offset: number) => {
+    try {
+      setLpLoading({ ...lpLoading, [poolAddress]: true });
+
+      const response = await fetch(`/api/holders?lpOnly=true&lpOffset=${offset}&lpLimit=5`);
+      const data = await response.json();
+
+      if (data.success) {
+        const existingHolders = lpHolders[poolAddress] || [];
+        setLpHolders({
+          ...lpHolders,
+          [poolAddress]: [...existingHolders, ...data.data]
+        });
+        setLpOffset({ ...lpOffset, [poolAddress]: offset + data.count });
+        setTotalLPHolders(data.totalLPHolders || 0);
+      }
+    } catch (err) {
+      console.error('Failed to fetch LP holders:', err);
+    } finally {
+      setLpLoading({ ...lpLoading, [poolAddress]: false });
+    }
+  };
+
+  // Load more LP holders for a pool
+  const handleLoadMoreLPHolders = (poolAddress: string) => {
+    const currentOffset = lpOffset[poolAddress] || 0;
+    fetchLPHolders(poolAddress, currentOffset);
   };
 
   // Format USD value with K/M suffix and American format

@@ -8,6 +8,7 @@ interface Holder {
   ensName: string | null;
   zeusBalance: string;
   wzeusBalance: string;
+  lpZeusBalance: string;
   totalBalance: string;
   totalBalanceRaw: number;
   usdValue: string;
@@ -271,7 +272,7 @@ const Table = styled.div`
 
 const TableHeader = styled.div`
   display: grid;
-  grid-template-columns: 60px 1fr 150px 150px 150px 150px;
+  grid-template-columns: 60px 1fr 130px 130px 130px 150px 150px;
   gap: 1rem;
   padding: 1rem;
   background: rgba(255, 215, 0, 0.1);
@@ -283,7 +284,7 @@ const TableHeader = styled.div`
   font-size: 1rem;
 
   @media (max-width: 1200px) {
-    grid-template-columns: 50px 1fr 120px 120px 120px;
+    grid-template-columns: 50px 1fr 110px 110px 110px 120px;
     gap: 0.5rem;
     font-size: 0.9rem;
   }
@@ -304,8 +305,15 @@ const TableHeaderCell = styled.div`
   &:nth-child(3),
   &:nth-child(4),
   &:nth-child(5),
-  &:nth-child(6) {
+  &:nth-child(6),
+  &:nth-child(7) {
     text-align: right;
+  }
+
+  @media (max-width: 1200px) {
+    &:nth-child(5) {
+      display: none; // Hide LP ZEUS balance on medium screens
+    }
   }
 
   @media (max-width: 768px) {
@@ -314,6 +322,9 @@ const TableHeaderCell = styled.div`
     }
     &:nth-child(4) {
       display: none; // Hide wZEUS balance on mobile
+    }
+    &:nth-child(5) {
+      display: none; // Hide LP ZEUS balance on mobile
     }
   }
 `;
@@ -346,7 +357,7 @@ const TableBody = styled.div`
 
 const TableRow = styled.div<{ isTop3: boolean }>`
   display: grid;
-  grid-template-columns: 60px 1fr 150px 150px 150px 150px;
+  grid-template-columns: 60px 1fr 130px 130px 130px 150px 150px;
   gap: 1rem;
   padding: 1rem;
   padding-left: ${props => props.isTop3 ? '3rem' : '1rem'}; /* Extra padding for trophy */
@@ -393,7 +404,7 @@ const TableRow = styled.div<{ isTop3: boolean }>`
   }
 
   @media (max-width: 1200px) {
-    grid-template-columns: 50px 1fr 120px 120px 120px;
+    grid-template-columns: 50px 1fr 110px 110px 110px 120px;
     gap: 0.5rem;
     font-size: 0.9rem;
     padding-left: ${props => props.isTop3 ? '2.5rem' : '1rem'};
@@ -431,8 +442,15 @@ const TableCell = styled.div`
   &:nth-child(3),
   &:nth-child(4),
   &:nth-child(5),
-  &:nth-child(6) {
+  &:nth-child(6),
+  &:nth-child(7) {
     justify-content: flex-end;
+  }
+
+  @media (max-width: 1200px) {
+    &:nth-child(5) {
+      display: none; // Hide LP ZEUS balance on medium screens
+    }
   }
 
   @media (max-width: 768px) {
@@ -440,6 +458,9 @@ const TableCell = styled.div`
       display: none;
     }
     &:nth-child(4) {
+      display: none;
+    }
+    &:nth-child(5) {
       display: none;
     }
 
@@ -908,6 +929,7 @@ const Holders: React.FC = () => {
               <TableHeaderCell>Holder</TableHeaderCell>
               <TableHeaderCell>ZEUS</TableHeaderCell>
               <TableHeaderCell>wZEUS</TableHeaderCell>
+              <TableHeaderCell>LP ZEUS</TableHeaderCell>
               <TableHeaderCell>Total</TableHeaderCell>
               <TableHeaderCell>USD Value</TableHeaderCell>
             </TableHeader>
@@ -926,6 +948,9 @@ const Holders: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Balance>{holder.wzeusBalance}</Balance>
+                  </TableCell>
+                  <TableCell>
+                    <Balance>{holder.lpZeusBalance}</Balance>
                   </TableCell>
                   <TableCell>
                     <Balance>{holder.totalBalance}</Balance>

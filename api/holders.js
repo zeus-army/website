@@ -9,6 +9,7 @@ const ETHEREUM_RPC_URL = ALCHEMY_API_KEY
   : process.env.ETHEREUM_RPC_URL || 'https://eth.llamarpc.com';
 const ZEUS_TOKEN_ADDRESS = '0x0f7dc5d02cc1e1f5ee47854d534d332a1081ccc8';
 const WZEUS_TOKEN_ADDRESS = '0xA56B06AA7Bfa6cbaD8A0b5161ca052d86a5D88E9';
+const UNISWAP_V2_POOL = '0xf97503af8230a7e72909d6614f45e88168ff3c10';
 const COINGECKO_API_KEY = process.env.COINGECKO || '';
 
 // Cache duration for top 10 holders (5 minutes)
@@ -19,6 +20,15 @@ const ERC20_ABI = parseAbi([
   'function balanceOf(address owner) view returns (uint256)',
   'function decimals() view returns (uint8)',
   'function totalSupply() view returns (uint256)'
+]);
+
+// Uniswap V2 Pool ABI
+const UNISWAP_V2_POOL_ABI = parseAbi([
+  'function token0() view returns (address)',
+  'function token1() view returns (address)',
+  'function getReserves() view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)',
+  'function totalSupply() view returns (uint256)',
+  'function balanceOf(address owner) view returns (uint256)'
 ]);
 
 // In-memory store
@@ -236,8 +246,62 @@ async function fetchHoldersWithAlchemy(viemClient, contractAddress, limit = 100)
   }
 }
 
+// Get Uniswap V2 LP token holders and calculate their ZEUS positions
+async function getUniswapLPHolders(viemClient, decimals) {
+  try {
+    console.log('Fetching Uniswap V2 LP holders...');
+
+    const poolContract = getContract({
+      address: UNISWAP_V2_POOL,
+      abi: UNISWAP_V2_POOL_ABI,
+      client: viemClient
+    });
+
+    // Get pool info
+    const [totalSupply, reserves, token0] = await Promise.all([
+      poolContract.read.totalSupply(),
+      poolContract.read.getReserves(),
+      poolContract.read.token0()
+    ]);
+
+    // Check which token is ZEUS (token0 or token1)
+    const isToken0Zeus = token0.toLowerCase() === ZEUS_TOKEN_ADDRESS.toLowerCase();
+    const zeusReserve = isToken0Zeus ? reserves[0] : reserves[1];
+
+    console.log('Pool Total Supply:', totalSupply.toString());
+    console.log('ZEUS Reserve:', zeusReserve.toString());
+
+    // Fetch Transfer events for LP tokens to find holders
+    const holders = await fetchHoldersWithAlchemy(viemClient, UNISWAP_V2_POOL, 200);
+
+    console.log(`Found ${holders.length} LP token holders`);
+
+    // Calculate ZEUS position for each LP holder
+    const lpPositions = holders.map(holder => {
+      const lpBalance = BigInt(holder.balance);
+      const totalSupplyBigInt = BigInt(totalSupply.toString());
+      const zeusReserveBigInt = BigInt(zeusReserve.toString());
+
+      // Calculate: (lpBalance / totalSupply) * zeusReserve
+      const zeusAmount = (lpBalance * zeusReserveBigInt) / totalSupplyBigInt;
+
+      return {
+        address: holder.address,
+        balance: zeusAmount.toString(),
+        isLPPosition: true // Mark as LP position
+      };
+    }).filter(holder => BigInt(holder.balance) > 0n);
+
+    console.log(`LP holders with non-zero ZEUS positions: ${lpPositions.length}`);
+    return lpPositions;
+  } catch (error) {
+    console.error('Error fetching Uniswap LP holders:', error);
+    return [];
+  }
+}
+
 // Aggregate holders from both ZEUS and wZEUS
-async function aggregateHolders(zeusHolders, wzeusHolders) {
+async function aggregateHolders(zeusHolders, wzeusHolders, lpHolders = []) {
   const holderMap = new Map();
 
   // Add ZEUS holders
@@ -245,7 +309,8 @@ async function aggregateHolders(zeusHolders, wzeusHolders) {
     holderMap.set(holder.address.toLowerCase(), {
       address: holder.address,
       zeusBalance: BigInt(holder.balance),
-      wzeusBalance: BigInt(0)
+      wzeusBalance: BigInt(0),
+      lpZeusBalance: BigInt(0)
     });
   });
 
@@ -258,7 +323,23 @@ async function aggregateHolders(zeusHolders, wzeusHolders) {
       holderMap.set(addr, {
         address: holder.address,
         zeusBalance: BigInt(0),
-        wzeusBalance: BigInt(holder.balance)
+        wzeusBalance: BigInt(holder.balance),
+        lpZeusBalance: BigInt(0)
+      });
+    }
+  });
+
+  // Add or update with LP positions (ZEUS from Uniswap pool)
+  lpHolders.forEach(holder => {
+    const addr = holder.address.toLowerCase();
+    if (holderMap.has(addr)) {
+      holderMap.get(addr).lpZeusBalance = BigInt(holder.balance);
+    } else {
+      holderMap.set(addr, {
+        address: holder.address,
+        zeusBalance: BigInt(0),
+        wzeusBalance: BigInt(0),
+        lpZeusBalance: BigInt(holder.balance)
       });
     }
   });
@@ -268,7 +349,8 @@ async function aggregateHolders(zeusHolders, wzeusHolders) {
     address: holder.address,
     zeusBalance: holder.zeusBalance,
     wzeusBalance: holder.wzeusBalance,
-    totalBalance: holder.zeusBalance + holder.wzeusBalance
+    lpZeusBalance: holder.lpZeusBalance,
+    totalBalance: holder.zeusBalance + holder.wzeusBalance + holder.lpZeusBalance
   }));
 
   // Sort by total balance descending
@@ -296,14 +378,15 @@ async function getTop10Holders(viemClient, decimals, totalSupply, zeusPrice) {
 
   console.log('Fetching fresh top 10 holders...');
 
-  // Fetch holders using Alchemy for both tokens
-  const [zeusHolders, wzeusHolders] = await Promise.all([
+  // Fetch holders using Alchemy for both tokens and LP positions
+  const [zeusHolders, wzeusHolders, lpHolders] = await Promise.all([
     fetchHoldersWithAlchemy(viemClient, ZEUS_TOKEN_ADDRESS, 100),
-    fetchHoldersWithAlchemy(viemClient, WZEUS_TOKEN_ADDRESS, 100)
+    fetchHoldersWithAlchemy(viemClient, WZEUS_TOKEN_ADDRESS, 100),
+    getUniswapLPHolders(viemClient, decimals)
   ]);
 
   // Aggregate holders
-  const aggregated = await aggregateHolders(zeusHolders, wzeusHolders);
+  const aggregated = await aggregateHolders(zeusHolders, wzeusHolders, lpHolders);
 
   // Get top 10
   const top10 = aggregated.slice(0, 10);
@@ -322,6 +405,7 @@ async function getTop10Holders(viemClient, decimals, totalSupply, zeusPrice) {
         ensName: ensName,
         zeusBalance: formatBalance(holder.zeusBalance.toString(), decimals),
         wzeusBalance: formatBalance(holder.wzeusBalance.toString(), decimals),
+        lpZeusBalance: formatBalance(holder.lpZeusBalance.toString(), decimals),
         totalBalance: formatBalance(holder.totalBalance.toString(), decimals),
         totalBalanceRaw: rawTotal,
         usdValue: usdValue.toFixed(2),
@@ -344,6 +428,7 @@ async function getTop10Holders(viemClient, decimals, totalSupply, zeusPrice) {
       ensName: holder.ensName || '',
       zeusBalance: holder.zeusBalance,
       wzeusBalance: holder.wzeusBalance,
+      lpZeusBalance: holder.lpZeusBalance,
       totalBalance: holder.totalBalance,
       totalBalanceRaw: holder.totalBalanceRaw.toString(),
       usdValue: holder.usdValue,
@@ -363,14 +448,15 @@ async function getAdditionalHolders(viemClient, decimals, totalSupply, zeusPrice
   // Fetch more holders if needed
   const fetchLimit = Math.min(offset + limit + 50, 300);
 
-  // Fetch holders using Alchemy for both tokens
-  const [zeusHolders, wzeusHolders] = await Promise.all([
+  // Fetch holders using Alchemy for both tokens and LP positions
+  const [zeusHolders, wzeusHolders, lpHolders] = await Promise.all([
     fetchHoldersWithAlchemy(viemClient, ZEUS_TOKEN_ADDRESS, fetchLimit),
-    fetchHoldersWithAlchemy(viemClient, WZEUS_TOKEN_ADDRESS, fetchLimit)
+    fetchHoldersWithAlchemy(viemClient, WZEUS_TOKEN_ADDRESS, fetchLimit),
+    getUniswapLPHolders(viemClient, decimals)
   ]);
 
   // Aggregate holders
-  const aggregated = await aggregateHolders(zeusHolders, wzeusHolders);
+  const aggregated = await aggregateHolders(zeusHolders, wzeusHolders, lpHolders);
 
   // Get the requested slice
   const requestedHolders = aggregated.slice(offset, offset + limit);
@@ -399,6 +485,7 @@ async function getAdditionalHolders(viemClient, decimals, totalSupply, zeusPrice
         ensName: ensName,
         zeusBalance: formatBalance(holder.zeusBalance.toString(), decimals),
         wzeusBalance: formatBalance(holder.wzeusBalance.toString(), decimals),
+        lpZeusBalance: formatBalance(holder.lpZeusBalance.toString(), decimals),
         totalBalance: formatBalance(holder.totalBalance.toString(), decimals),
         totalBalanceRaw: rawTotal,
         usdValue: usdValue.toFixed(2),
@@ -432,16 +519,40 @@ async function searchAddress(address, viemClient, decimals, totalSupply, zeusPri
       client: viemClient
     });
 
-    // Fetch balances for both tokens
-    const [zeusBalance, wzeusBalance, ensName] = await Promise.all([
+    const poolContract = getContract({
+      address: UNISWAP_V2_POOL,
+      abi: UNISWAP_V2_POOL_ABI,
+      client: viemClient
+    });
+
+    // Fetch balances for both tokens and LP position
+    const [zeusBalance, wzeusBalance, lpBalance, poolTotalSupply, reserves, token0, ensName] = await Promise.all([
       zeusContract.read.balanceOf([address]),
       wzeusContract.read.balanceOf([address]),
+      poolContract.read.balanceOf([address]),
+      poolContract.read.totalSupply(),
+      poolContract.read.getReserves(),
+      poolContract.read.token0(),
       resolveENS(address, viemClient)
     ]);
 
     const zeusBalanceBigInt = BigInt(zeusBalance.toString());
     const wzeusBalanceBigInt = BigInt(wzeusBalance.toString());
-    const totalBalance = zeusBalanceBigInt + wzeusBalanceBigInt;
+
+    // Calculate LP position ZEUS value
+    let lpZeusBalance = 0n;
+    if (BigInt(lpBalance.toString()) > 0n) {
+      const isToken0Zeus = token0.toLowerCase() === ZEUS_TOKEN_ADDRESS.toLowerCase();
+      const zeusReserve = isToken0Zeus ? reserves[0] : reserves[1];
+      const lpBalanceBigInt = BigInt(lpBalance.toString());
+      const totalSupplyBigInt = BigInt(poolTotalSupply.toString());
+      const zeusReserveBigInt = BigInt(zeusReserve.toString());
+
+      // Calculate: (lpBalance / totalSupply) * zeusReserve
+      lpZeusBalance = (lpBalanceBigInt * zeusReserveBigInt) / totalSupplyBigInt;
+    }
+
+    const totalBalance = zeusBalanceBigInt + wzeusBalanceBigInt + lpZeusBalance;
 
     // If no balance, return null
     if (totalBalance === 0n) {
@@ -458,6 +569,7 @@ async function searchAddress(address, viemClient, decimals, totalSupply, zeusPri
       ensName: ensName,
       zeusBalance: formatBalance(zeusBalanceBigInt.toString(), decimals),
       wzeusBalance: formatBalance(wzeusBalanceBigInt.toString(), decimals),
+      lpZeusBalance: formatBalance(lpZeusBalance.toString(), decimals),
       totalBalance: formatBalance(totalBalance.toString(), decimals),
       totalBalanceRaw: rawTotal,
       usdValue: usdValue.toFixed(2),

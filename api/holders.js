@@ -3,11 +3,13 @@ const { createClient: createRedisClient } = require('redis');
 const { createPublicClient, http, getContract, parseAbi } = require('viem');
 const { mainnet } = require('viem/chains');
 
-const ETHEREUM_RPC_URL = process.env.ETHEREUM_RPC_URL || 'https://eth.llamarpc.com';
+const ALCHEMY_API_KEY = process.env.ALCHEMY || '';
+const ETHEREUM_RPC_URL = ALCHEMY_API_KEY
+  ? `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`
+  : process.env.ETHEREUM_RPC_URL || 'https://eth.llamarpc.com';
 const ZEUS_TOKEN_ADDRESS = '0x0f7dc5d02cc1e1f5ee47854d534d332a1081ccc8';
 const WZEUS_TOKEN_ADDRESS = '0xA56B06AA7Bfa6cbaD8A0b5161ca052d86a5D88E9';
 const COINGECKO_API_KEY = process.env.COINGECKO || '';
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || '';
 
 // Cache duration for top 10 holders (5 minutes)
 const CACHE_DURATION = 5 * 60 * 1000;
@@ -100,10 +102,19 @@ function getRawBalance(balance, decimals) {
 // Fetch ZEUS price from CoinGecko
 async function fetchZeusPrice() {
   try {
-    const url = `https://api.coingecko.com/api/v3/simple/price?ids=zeus-network&vs_currencies=usd${COINGECKO_API_KEY ? `&x_cg_demo_api_key=${COINGECKO_API_KEY}` : ''}`;
+    // Use contract address to get price (more reliable)
+    const url = `https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=${ZEUS_TOKEN_ADDRESS}&vs_currencies=usd${COINGECKO_API_KEY ? `&x_cg_demo_api_key=${COINGECKO_API_KEY}` : ''}`;
     const response = await fetch(url);
+
+    if (!response.ok) {
+      console.error('CoinGecko API error:', response.status, response.statusText);
+      return 0;
+    }
+
     const data = await response.json();
-    return data['zeus-network']?.usd || 0;
+    const price = data[ZEUS_TOKEN_ADDRESS.toLowerCase()]?.usd || 0;
+    console.log('ZEUS price from CoinGecko:', price);
+    return price;
   } catch (error) {
     console.error('Error fetching ZEUS price:', error);
     return 0;
@@ -123,22 +134,79 @@ async function resolveENS(address, viemClient) {
   }
 }
 
-// Fetch holders from Etherscan
-async function fetchHoldersFromEtherscan(contractAddress, page = 1, offset = 100) {
+// Fetch holders using Alchemy - we get addresses from Transfer events, then query balances
+async function fetchHoldersWithAlchemy(viemClient, contractAddress, limit = 100) {
   try {
-    const url = `https://api.etherscan.io/api?module=token&action=tokenholderlist&contractaddress=${contractAddress}&page=${page}&offset=${offset}${ETHERSCAN_API_KEY ? `&apikey=${ETHERSCAN_API_KEY}` : ''}`;
-    const response = await fetch(url);
-    const data = await response.json();
+    console.log(`Fetching holders for ${contractAddress} using Alchemy...`);
 
-    if (data.status === '1' && data.result) {
-      return data.result.map(holder => ({
-        address: holder.TokenHolderAddress,
-        balance: holder.TokenHolderQuantity
-      }));
+    // Get recent Transfer events to find active holders
+    const currentBlock = await viemClient.getBlockNumber();
+    // Get last 50k blocks (roughly 1 week of data)
+    const fromBlock = currentBlock - 50000n;
+
+    console.log(`Fetching Transfer events from block ${fromBlock} to ${currentBlock}`);
+
+    const logs = await viemClient.getLogs({
+      address: contractAddress,
+      event: parseAbi(['event Transfer(address indexed from, address indexed to, uint256 value)'])[0],
+      fromBlock: fromBlock,
+      toBlock: 'latest'
+    });
+
+    // Collect unique addresses
+    const addressSet = new Set();
+    logs.forEach(log => {
+      if (log.args.from && log.args.from !== '0x0000000000000000000000000000000000000000') {
+        addressSet.add(log.args.from.toLowerCase());
+      }
+      if (log.args.to && log.args.to !== '0x0000000000000000000000000000000000000000') {
+        addressSet.add(log.args.to.toLowerCase());
+      }
+    });
+
+    console.log(`Found ${addressSet.size} unique addresses, fetching balances...`);
+
+    // Get balances for all addresses
+    const contract = getContract({
+      address: contractAddress,
+      abi: parseAbi(['function balanceOf(address) view returns (uint256)']),
+      client: viemClient
+    });
+
+    const holders = [];
+    const addresses = Array.from(addressSet).slice(0, 300); // Limit to avoid timeout
+
+    // Batch requests for efficiency
+    const batchSize = 50;
+    for (let i = 0; i < addresses.length; i += batchSize) {
+      const batch = addresses.slice(i, i + batchSize);
+      const balances = await Promise.all(
+        batch.map(async (addr) => {
+          try {
+            const balance = await contract.read.balanceOf([addr]);
+            return { address: addr, balance: balance.toString() };
+          } catch (error) {
+            console.error(`Error fetching balance for ${addr}:`, error.message);
+            return null;
+          }
+        })
+      );
+
+      holders.push(...balances.filter(h => h !== null && BigInt(h.balance) > 0n));
+      console.log(`Fetched batch ${i / batchSize + 1}, total holders so far: ${holders.length}`);
     }
-    return [];
+
+    // Sort by balance descending
+    holders.sort((a, b) => {
+      const balanceA = BigInt(a.balance);
+      const balanceB = BigInt(b.balance);
+      return balanceA > balanceB ? -1 : balanceA < balanceB ? 1 : 0;
+    });
+
+    console.log(`Found ${holders.length} total holders with balance`);
+    return holders.slice(0, limit);
   } catch (error) {
-    console.error('Error fetching holders from Etherscan:', error);
+    console.error('Error fetching holders with Alchemy:', error);
     return [];
   }
 }
@@ -193,8 +261,9 @@ async function getTop10Holders(viemClient, decimals, totalSupply, zeusPrice) {
   const cached = await kv.get(cacheKey);
 
   if (cached) {
-    const cachedData = JSON.parse(cached);
-    if (Date.now() - cachedData.timestamp < CACHE_DURATION) {
+    // Vercel KV returns objects directly, no need to JSON.parse
+    const cachedData = typeof cached === 'string' ? JSON.parse(cached) : cached;
+    if (cachedData && cachedData.timestamp && Date.now() - cachedData.timestamp < CACHE_DURATION) {
       console.log('Returning cached top 10 holders');
       return cachedData.holders;
     }
@@ -202,10 +271,10 @@ async function getTop10Holders(viemClient, decimals, totalSupply, zeusPrice) {
 
   console.log('Fetching fresh top 10 holders...');
 
-  // Fetch holders from Etherscan for both tokens
+  // Fetch holders using Alchemy for both tokens
   const [zeusHolders, wzeusHolders] = await Promise.all([
-    fetchHoldersFromEtherscan(ZEUS_TOKEN_ADDRESS, 1, 100),
-    fetchHoldersFromEtherscan(WZEUS_TOKEN_ADDRESS, 1, 100)
+    fetchHoldersWithAlchemy(viemClient, ZEUS_TOKEN_ADDRESS, 100),
+    fetchHoldersWithAlchemy(viemClient, WZEUS_TOKEN_ADDRESS, 100)
   ]);
 
   // Aggregate holders
@@ -237,10 +306,11 @@ async function getTop10Holders(viemClient, decimals, totalSupply, zeusPrice) {
   );
 
   // Cache the results
-  await kv.set(cacheKey, JSON.stringify({
+  // Vercel KV accepts objects directly
+  await kv.set(cacheKey, {
     timestamp: Date.now(),
     holders: top10WithENS
-  }));
+  });
 
   // Also save individual entries in Redis for future reference
   for (const holder of top10WithENS) {
@@ -265,14 +335,13 @@ async function getTop10Holders(viemClient, decimals, totalSupply, zeusPrice) {
 async function getAdditionalHolders(viemClient, decimals, totalSupply, zeusPrice, offset = 10, limit = 20) {
   console.log(`Fetching additional holders (offset: ${offset}, limit: ${limit})...`);
 
-  // Calculate which page to fetch from Etherscan
-  const page = Math.floor(offset / 100) + 1;
-  const etherscanOffset = Math.max(offset + limit, 100);
+  // Fetch more holders if needed
+  const fetchLimit = Math.min(offset + limit + 50, 300);
 
-  // Fetch holders from Etherscan for both tokens
+  // Fetch holders using Alchemy for both tokens
   const [zeusHolders, wzeusHolders] = await Promise.all([
-    fetchHoldersFromEtherscan(ZEUS_TOKEN_ADDRESS, page, etherscanOffset),
-    fetchHoldersFromEtherscan(WZEUS_TOKEN_ADDRESS, page, etherscanOffset)
+    fetchHoldersWithAlchemy(viemClient, ZEUS_TOKEN_ADDRESS, fetchLimit),
+    fetchHoldersWithAlchemy(viemClient, WZEUS_TOKEN_ADDRESS, fetchLimit)
   ]);
 
   // Aggregate holders

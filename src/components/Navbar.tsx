@@ -216,13 +216,11 @@ const Navbar: React.FC = () => {
         </Link>
 
         <NavLinks>
-          <NavLink href="/#about">About Us</NavLink>
           <NavLink href="/#mission">Mission</NavLink>
           <NavLink href="/#roadmap">Roadmap</NavLink>
           <NavLink href="/#leaderboard">Whales</NavLink>
           <NavLinkRouter to="/holders">Holders</NavLinkRouter>
           <NavLinkRouter to="/governance">Governance</NavLinkRouter>
-          <NavLink href="/#join">Join Us</NavLink>
         </NavLinks>
 
         <MobileMenu $isOpen={mobileMenuOpen} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -233,13 +231,11 @@ const Navbar: React.FC = () => {
       </NavContainer>
 
       <MobileMenuContainer $isOpen={mobileMenuOpen}>
-        <MobileNavLink href="/#about" onClick={() => setMobileMenuOpen(false)}>About Us</MobileNavLink>
         <MobileNavLink href="/#mission" onClick={() => setMobileMenuOpen(false)}>Mission</MobileNavLink>
         <MobileNavLink href="/#roadmap" onClick={() => setMobileMenuOpen(false)}>Roadmap</MobileNavLink>
         <MobileNavLink href="/#leaderboard" onClick={() => setMobileMenuOpen(false)}>Whales</MobileNavLink>
         <MobileNavLinkRouter to="/holders" onClick={() => setMobileMenuOpen(false)}>Holders</MobileNavLinkRouter>
         <MobileNavLinkRouter to="/governance" onClick={() => setMobileMenuOpen(false)}>Governance</MobileNavLinkRouter>
-        <MobileNavLink href="/#join" onClick={() => setMobileMenuOpen(false)}>Join Us</MobileNavLink>
       </MobileMenuContainer>
     </Nav>
   );

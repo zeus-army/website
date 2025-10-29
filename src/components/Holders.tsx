@@ -880,20 +880,26 @@ const Holders: React.FC = () => {
 
   // Toggle row expansion for Uniswap pool
   const toggleRowExpansion = async (address: string) => {
+    console.log('Toggle row expansion for:', address);
     const newExpanded = new Set(expandedRows);
 
     if (expandedRows.has(address)) {
       // Collapse
+      console.log('Collapsing...');
       newExpanded.delete(address);
       setExpandedRows(newExpanded);
     } else {
       // Expand and fetch LP holders
+      console.log('Expanding...');
       newExpanded.add(address);
       setExpandedRows(newExpanded);
 
       // Only fetch if we don't have data yet
       if (!lpHolders[address]) {
+        console.log('Fetching LP holders for first time...');
         await fetchLPHolders(address, 0);
+      } else {
+        console.log('LP holders already loaded:', lpHolders[address].length);
       }
     }
   };
@@ -901,19 +907,26 @@ const Holders: React.FC = () => {
   // Fetch LP holders for a specific pool address
   const fetchLPHolders = async (poolAddress: string, offset: number) => {
     try {
+      console.log(`Fetching LP holders: offset=${offset}, limit=5`);
       setLpLoading({ ...lpLoading, [poolAddress]: true });
 
       const response = await fetch(`/api/holders?lpOnly=true&lpOffset=${offset}&lpLimit=5`);
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('LP holders data:', data);
 
       if (data.success) {
         const existingHolders = lpHolders[poolAddress] || [];
+        console.log(`Existing holders: ${existingHolders.length}, New: ${data.data.length}`);
         setLpHolders({
           ...lpHolders,
           [poolAddress]: [...existingHolders, ...data.data]
         });
         setLpOffset({ ...lpOffset, [poolAddress]: offset + data.count });
         setTotalLPHolders(data.totalLPHolders || 0);
+        console.log('Total LP holders:', data.totalLPHolders);
+      } else {
+        console.error('API returned success=false:', data);
       }
     } catch (err) {
       console.error('Failed to fetch LP holders:', err);

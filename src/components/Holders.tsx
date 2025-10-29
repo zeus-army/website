@@ -1076,31 +1076,90 @@ const Holders: React.FC = () => {
             </TableHeader>
 
             <TableBody ref={tableBodyRef}>
-              {holders.map((holder) => (
-                <TableRow key={holder.address} isTop3={holder.rank <= 3}>
-                  <TableCell>
-                    <Rank rank={holder.rank}>#{holder.rank}</Rank>
-                  </TableCell>
-                  <TableCell>
-                    {formatAddress(holder.address, holder.ensName)}
-                  </TableCell>
-                  <TableCell>
-                    <Balance>{holder.zeusBalance}</Balance>
-                  </TableCell>
-                  <TableCell>
-                    <Balance>{holder.wzeusBalance}</Balance>
-                  </TableCell>
-                  <TableCell>
-                    <Balance>{holder.lpZeusBalance}</Balance>
-                  </TableCell>
-                  <TableCell>
-                    <Balance>{holder.totalBalance}</Balance>
-                  </TableCell>
-                  <TableCell>
-                    <USDValue>{formatUSD(holder.usdValue)}</USDValue>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {holders.map((holder) => {
+                const isUniswap = holder.address.toLowerCase() === '0xf97503af8230a7e72909d6614f45e88168ff3c10';
+                const isExpanded = expandedRows.has(holder.address);
+                const poolLPHolders = lpHolders[holder.address] || [];
+                const currentLPOffset = lpOffset[holder.address] || 0;
+                const hasMoreLP = currentLPOffset < totalLPHolders;
+
+                return (
+                  <React.Fragment key={holder.address}>
+                    <TableRow isTop3={holder.rank <= 3}>
+                      <TableCell>
+                        <Rank rank={holder.rank}>#{holder.rank}</Rank>
+                      </TableCell>
+                      <TableCell>
+                        {isUniswap && (
+                          <ExpandButton
+                            className={isExpanded ? 'expanded' : ''}
+                            onClick={() => toggleRowExpansion(holder.address)}
+                          >
+                            ▶
+                          </ExpandButton>
+                        )}
+                        {formatAddress(holder.address, holder.ensName)}
+                      </TableCell>
+                      <TableCell>
+                        <Balance>{holder.zeusBalance}</Balance>
+                      </TableCell>
+                      <TableCell>
+                        <Balance>{holder.wzeusBalance}</Balance>
+                      </TableCell>
+                      <TableCell>
+                        <Balance>{holder.lpZeusBalance}</Balance>
+                      </TableCell>
+                      <TableCell>
+                        <Balance>{holder.totalBalance}</Balance>
+                      </TableCell>
+                      <TableCell>
+                        <USDValue>{formatUSD(holder.usdValue)}</USDValue>
+                      </TableCell>
+                    </TableRow>
+
+                    {/* Render LP holders if expanded */}
+                    {isUniswap && isExpanded && (
+                      <>
+                        {poolLPHolders.map((lpHolder, idx) => (
+                          <SubRow key={`${holder.address}-lp-${idx}`}>
+                            <TableCell>
+                              <Rank rank={lpHolder.rank}>#{lpHolder.rank}</Rank>
+                            </TableCell>
+                            <TableCell>
+                              {formatAddress(lpHolder.address, lpHolder.ensName)}
+                            </TableCell>
+                            <TableCell>
+                              <Balance>{lpHolder.zeusBalance}</Balance>
+                            </TableCell>
+                            <TableCell>
+                              <Balance>{lpHolder.wzeusBalance}</Balance>
+                            </TableCell>
+                            <TableCell>
+                              <Balance>{lpHolder.lpZeusBalance}</Balance>
+                            </TableCell>
+                            <TableCell>
+                              <Balance>{lpHolder.totalBalance}</Balance>
+                            </TableCell>
+                            <TableCell>
+                              <USDValue>{formatUSD(lpHolder.usdValue)}</USDValue>
+                            </TableCell>
+                          </SubRow>
+                        ))}
+
+                        {/* Show more button */}
+                        {hasMoreLP && (
+                          <ShowMoreLPButton
+                            onClick={() => handleLoadMoreLPHolders(holder.address)}
+                            disabled={lpLoading[holder.address]}
+                          >
+                            {lpLoading[holder.address] ? 'Loading...' : `Show More LP Holders (${totalLPHolders - currentLPOffset} remaining)`}
+                          </ShowMoreLPButton>
+                        )}
+                      </>
+                    )}
+                  </React.Fragment>
+                );
+              })}
 
               {loadingMore && (
                 <LoadingMessage>Loading more holders... ⚡</LoadingMessage>

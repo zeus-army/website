@@ -1239,14 +1239,17 @@ const MakeIt: React.FC = () => {
         <SectionTitle>Make It</SectionTitle>
         <Description>
           <DescriptionText>
-            We are more than holders—we are <strong>builders of a shared destiny</strong>. United by memes, driven by vision,
-            bound by community. This is where <strong>culture meets capital</strong>, where diamond hands forge <strong>generational wealth</strong>.
+            Meme communities are <strong>groups of people united by a shared culture</strong>, working together toward a common mission:
+            <strong>creating wealth</strong>. We are more than holders—we are <strong>builders of a shared destiny</strong>.
+            United by memes, driven by vision, bound by community. This is where <strong>culture meets capital</strong>,
+            where diamond hands forge <strong>generational wealth</strong>.
           </DescriptionText>
 
           <HighlightBox>
             <p>
-              Beta plays typically reach <strong>20% of their reference coin's ATH</strong>. PEPE, our reference, achieved an
-              all-time high market cap of <strong>$11 billion</strong>. At 20% of that peak, ZEUS's target sits at <strong>$2.2 billion</strong>.
+              <strong>Our mission: reach $2.2B</strong>—20% of PEPE's all-time high market cap. Beta plays typically reach
+              <strong>20% of their reference coin's ATH</strong>. PEPE achieved <strong>$11 billion</strong> at its peak,
+              making <strong>$2.2 billion</strong> our north star.
             </p>
             <p>
               The question isn't if—it's when. Will you be there when we make it? 🚀

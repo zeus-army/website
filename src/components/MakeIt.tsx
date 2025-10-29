@@ -181,6 +181,11 @@ const MarketCapSelector = styled.div`
   gap: 1rem;
   margin-bottom: 2rem;
   flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
 `;
 
 const MarketCapLabel = styled.span`
@@ -188,6 +193,12 @@ const MarketCapLabel = styled.span`
   font-size: 1.2rem;
   color: rgba(255, 255, 255, 0.8);
   font-weight: 600;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    text-align: center;
+    font-size: 1.1rem;
+  }
 `;
 
 const MarketCapChip = styled.button<{ $selected: boolean }>`
@@ -214,8 +225,10 @@ const MarketCapChip = styled.button<{ $selected: boolean }>`
   }
 
   @media (max-width: 768px) {
-    padding: 0.6rem 1.5rem;
-    font-size: 1rem;
+    width: 100%;
+    max-width: 300px;
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
   }
 `;
 

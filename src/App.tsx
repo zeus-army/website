@@ -10,6 +10,7 @@ import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import GovernancePage from './pages/GovernancePage';
 import HoldersPage from './pages/HoldersPage';
+import MakeItPage from './pages/MakeItPage';
 import Footer from './components/Footer';
 
 const queryClient = new QueryClient();
@@ -63,6 +64,7 @@ function App() {
                   <Route path="/" element={<HomePage />} />
                   <Route path="/governance" element={<GovernancePage />} />
                   <Route path="/holders" element={<HoldersPage />} />
+                  <Route path="/makeit" element={<MakeItPage />} />
                 </Routes>
               </main>
               <Footer />

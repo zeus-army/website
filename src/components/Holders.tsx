@@ -1016,9 +1016,13 @@ const Holders: React.FC = () => {
       return `$${(num / 1_000).toFixed(2)}K`;
     } else if (num >= 1) {
       return `$${num.toFixed(2)}`;
+    } else if (num >= 0.01) {
+      return `$${num.toFixed(2)}`;
+    } else if (num > 0) {
+      // For values between 0 and 0.01, show <$0.01
+      return '<$0.01';
     } else {
-      // For very small values, show more decimals
-      return `$${num.toFixed(6)}`;
+      return '$0.00';
     }
   };
 

@@ -82,15 +82,83 @@ const SectionTitle = styled.h2`
   }
 `;
 
-const Description = styled.p`
+const Description = styled.div`
   font-family: var(--font-body);
   font-size: 1.2rem;
   text-align: center;
-  color: rgba(255, 255, 255, 0.8);
   margin-bottom: 3rem;
-  max-width: 800px;
+  max-width: 900px;
   margin-left: auto;
   margin-right: auto;
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(165, 94, 234, 0.1) 100%);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 20px;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.2), inset 0 0 30px rgba(165, 94, 234, 0.1);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      45deg,
+      transparent,
+      rgba(255, 215, 0, 0.1),
+      transparent
+    );
+    transform: rotate(45deg);
+    animation: shimmer 3s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+  }
+`;
+
+const DescriptionText = styled.p`
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
+
+  strong {
+    background: var(--gradient-zeus);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 900;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  }
+`;
+
+const HighlightBox = styled.div`
+  background: linear-gradient(135deg, rgba(165, 94, 234, 0.2), rgba(138, 75, 194, 0.2));
+  border: 2px solid rgba(165, 94, 234, 0.5);
+  border-radius: 15px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  position: relative;
+  z-index: 1;
+
+  p {
+    color: rgba(255, 255, 255, 0.95);
+    line-height: 1.6;
+    margin: 0;
+    font-size: 1.1rem;
+
+    &:last-child {
+      margin-top: 0.75rem;
+      color: var(--color-primary);
+      font-weight: 700;
+    }
+  }
 `;
 
 const PriceDisplay = styled.div`
@@ -1157,10 +1225,20 @@ const MakeIt: React.FC = () => {
       <Container>
         <SectionTitle>Make It</SectionTitle>
         <Description>
-          We are more than holders—we are builders of a shared destiny. United by memes, driven by vision,
-          bound by community. This is where culture meets capital, where diamond hands forge generational wealth.
-          See the future value of your position when ZEUS conquers its mission. The question isn't if—it's when.
-          Will you be there when we make it?
+          <DescriptionText>
+            We are more than holders—we are <strong>builders of a shared destiny</strong>. United by memes, driven by vision,
+            bound by community. This is where <strong>culture meets capital</strong>, where diamond hands forge <strong>generational wealth</strong>.
+          </DescriptionText>
+
+          <HighlightBox>
+            <p>
+              Beta plays typically reach <strong>20% of their reference coin's ATH</strong>. PEPE, our reference, achieved an
+              all-time high market cap of <strong>$11 billion</strong>. At 20% of that peak, ZEUS's target sits at <strong>$2.2 billion</strong>.
+            </p>
+            <p>
+              The question isn't if—it's when. Will you be there when we make it? 🚀
+            </p>
+          </HighlightBox>
         </Description>
 
         <MarketCapSelector>
@@ -1176,6 +1254,12 @@ const MakeIt: React.FC = () => {
             onClick={() => setTargetMarketCap(1_000_000_000)}
           >
             $1B
+          </MarketCapChip>
+          <MarketCapChip
+            $selected={targetMarketCap === 2_200_000_000}
+            onClick={() => setTargetMarketCap(2_200_000_000)}
+          >
+            $2.2B
           </MarketCapChip>
         </MarketCapSelector>
 

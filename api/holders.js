@@ -246,6 +246,92 @@ async function fetchHoldersWithAlchemy(viemClient, contractAddress, limit = 100)
   }
 }
 
+// Fetch LP holders using Alchemy's Asset Transfers API (for old, inactive pools)
+async function fetchLPHoldersWithAlchemyTransfers(contractAddress, viemClient) {
+  try {
+    console.log(`Fetching LP token transfers using Alchemy Asset Transfers API...`);
+
+    const url = `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'alchemy_getAssetTransfers',
+        params: [{
+          fromBlock: '0x0',
+          contractAddresses: [contractAddress],
+          category: ['erc20'],
+          maxCount: '0x3e8', // 1000 max
+          order: 'desc',
+          withMetadata: false
+        }],
+        id: 1
+      })
+    });
+
+    const data = await response.json();
+    const transfers = data.result?.transfers || [];
+    console.log(`Transfers found: ${transfers.length}`);
+
+    // Collect unique addresses (only recipients - "to" addresses)
+    const holdersSet = new Set();
+    transfers.forEach(t => {
+      // Only add "to" addresses (recipients of LP tokens)
+      // Exclude burn address
+      if (t.to && t.to !== '0x0000000000000000000000000000000000000000') {
+        holdersSet.add(t.to.toLowerCase());
+      }
+    });
+
+    console.log(`Unique holder addresses: ${holdersSet.size}`);
+
+    // Get balances for all addresses
+    const contract = getContract({
+      address: contractAddress,
+      abi: parseAbi(['function balanceOf(address) view returns (uint256)']),
+      client: viemClient
+    });
+
+    const holders = [];
+    const addresses = Array.from(holdersSet);
+
+    // Batch check balances
+    const batchSize = 20;
+    for (let i = 0; i < Math.min(addresses.length, 100); i += batchSize) {
+      const batch = addresses.slice(i, i + batchSize);
+      const balances = await Promise.all(
+        batch.map(async (addr) => {
+          try {
+            const balance = await contract.read.balanceOf([addr]);
+            return { address: addr, balance: balance.toString() };
+          } catch (error) {
+            console.error(`Error fetching balance for ${addr}:`, error.message);
+            return null;
+          }
+        })
+      );
+
+      holders.push(...balances.filter(h => h !== null && BigInt(h.balance) > 0n));
+    }
+
+    console.log(`Holders with non-zero balance: ${holders.length}`);
+
+    // Sort by balance descending
+    holders.sort((a, b) => {
+      const balanceA = BigInt(a.balance);
+      const balanceB = BigInt(b.balance);
+      return balanceA > balanceB ? -1 : balanceA < balanceB ? 1 : 0;
+    });
+
+    return holders;
+  } catch (error) {
+    console.error('Error fetching LP holders with Alchemy Transfers API:', error);
+    return [];
+  }
+}
+
 // Get Uniswap V2 LP token holders and calculate their ZEUS positions
 async function getUniswapLPHolders(viemClient, decimals) {
   try {
@@ -271,10 +357,14 @@ async function getUniswapLPHolders(viemClient, decimals) {
     console.log('Pool Total Supply:', totalSupply.toString());
     console.log('ZEUS Reserve:', zeusReserve.toString());
 
-    // Fetch Transfer events for LP tokens to find holders
-    const holders = await fetchHoldersWithAlchemy(viemClient, UNISWAP_V2_POOL, 200);
+    // Fetch LP token holders using Alchemy Asset Transfers API
+    console.log('Calling fetchLPHoldersWithAlchemyTransfers for LP token...');
+    const holders = await fetchLPHoldersWithAlchemyTransfers(UNISWAP_V2_POOL, viemClient);
 
     console.log(`Found ${holders.length} LP token holders`);
+    if (holders.length > 0) {
+      console.log('First holder sample:', holders[0]);
+    }
 
     // Calculate ZEUS position for each LP holder
     const lpPositions = holders.map(holder => {

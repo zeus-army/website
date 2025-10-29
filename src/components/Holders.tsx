@@ -103,6 +103,153 @@ const PriceDisplay = styled.div`
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 `;
 
+const SearchContainer = styled.div`
+  max-width: 600px;
+  margin: 0 auto 2rem;
+`;
+
+const SearchWrapper = styled.div`
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+`;
+
+const SearchInput = styled.input`
+  flex: 1;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  background: rgba(10, 14, 39, 0.8);
+  color: var(--color-text-light);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  }
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
+`;
+
+const SearchButton = styled.button`
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  border: 3px solid #000;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #000;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 900;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 6px 0 #000, 0 6px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 0 #000, 0 8px 25px rgba(0, 0, 0, 0.4);
+  }
+
+  &:active {
+    transform: translateY(1px);
+    box-shadow: 0 3px 0 #000, 0 3px 15px rgba(0, 0, 0, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+`;
+
+const ClearButton = styled.button`
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  border: 3px solid #000;
+  background: linear-gradient(135deg, #1E90FF 0%, #00BFFF 100%);
+  color: #000;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 900;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 6px 0 #000, 0 6px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 0 #000, 0 8px 25px rgba(0, 0, 0, 0.4);
+  }
+
+  &:active {
+    transform: translateY(1px);
+    box-shadow: 0 3px 0 #000, 0 3px 15px rgba(0, 0, 0, 0.3);
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+`;
+
+const HistoryContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+`;
+
+const HistoryButton = styled.button`
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  border: 2px solid rgba(255, 215, 0, 0.4);
+  background: rgba(26, 31, 58, 0.6);
+  color: var(--color-text-light);
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &:hover {
+    background: rgba(26, 31, 58, 0.9);
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
+const DeleteIcon = styled.span`
+  color: #ff6b6b;
+  font-weight: 900;
+  font-size: 1.1rem;
+  line-height: 1;
+
+  &:hover {
+    color: #ff4757;
+  }
+`;
+
 const TableWrapper = styled.div`
   background: rgba(10, 14, 39, 0.6);
   border: 2px solid rgba(255, 215, 0, 0.3);
@@ -454,6 +601,64 @@ const LoadMoreButton = styled.button`
   }
 `;
 
+// Cookie utilities
+const COOKIE_NAME = 'zeusSearchHistory';
+const MAX_HISTORY = 10;
+
+const getCookie = (name: string): string | null => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return parts.pop()?.split(';').shift() || null;
+  }
+  return null;
+};
+
+const setCookie = (name: string, value: string, days: number = 365) => {
+  const date = new Date();
+  date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+  const expires = `expires=${date.toUTCString()}`;
+  document.cookie = `${name}=${value};${expires};path=/`;
+};
+
+const getSearchHistory = (): string[] => {
+  const cookie = getCookie(COOKIE_NAME);
+  if (!cookie) return [];
+  try {
+    return JSON.parse(decodeURIComponent(cookie));
+  } catch {
+    return [];
+  }
+};
+
+const saveSearchHistory = (addresses: string[]) => {
+  const encoded = encodeURIComponent(JSON.stringify(addresses));
+  setCookie(COOKIE_NAME, encoded);
+};
+
+const addToSearchHistory = (address: string) => {
+  const history = getSearchHistory();
+  const normalized = address.toLowerCase();
+
+  // Remove if already exists
+  const filtered = history.filter(addr => addr.toLowerCase() !== normalized);
+
+  // Add to beginning
+  const newHistory = [address, ...filtered].slice(0, MAX_HISTORY);
+  saveSearchHistory(newHistory);
+
+  return newHistory;
+};
+
+const removeFromSearchHistory = (address: string) => {
+  const history = getSearchHistory();
+  const normalized = address.toLowerCase();
+  const filtered = history.filter(addr => addr.toLowerCase() !== normalized);
+  saveSearchHistory(filtered);
+
+  return filtered;
+};
+
 // Component
 const Holders: React.FC = () => {
   const [holders, setHolders] = useState<Holder[]>([]);
@@ -465,10 +670,18 @@ const Holders: React.FC = () => {
   const [wzeusValue, setWzeusValue] = useState<number>(0);
   const [offset, setOffset] = useState<number>(0);
   const [hasMore, setHasMore] = useState<boolean>(true);
+  const [searchAddress, setSearchAddress] = useState<string>('');
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const tableBodyRef = useRef<HTMLDivElement>(null);
 
+  // Load search history on mount
+  useEffect(() => {
+    setSearchHistory(getSearchHistory());
+  }, []);
+
   // Fetch holders
-  const fetchHolders = useCallback(async (offsetVal: number, limitVal: number, append: boolean = false) => {
+  const fetchHolders = useCallback(async (offsetVal: number, limitVal: number, append: boolean = false, address?: string) => {
     try {
       if (append) {
         setLoadingMore(true);
@@ -476,7 +689,11 @@ const Holders: React.FC = () => {
         setLoading(true);
       }
 
-      const response = await fetch(`/api/holders?offset=${offsetVal}&limit=${limitVal}`);
+      const url = address
+        ? `/api/holders?address=${encodeURIComponent(address)}`
+        : `/api/holders?offset=${offsetVal}&limit=${limitVal}`;
+
+      const response = await fetch(url);
       const data = await response.json();
 
       if (data.success) {
@@ -488,9 +705,11 @@ const Holders: React.FC = () => {
         setPrice(data.price);
         setMarketCap(data.marketCap || 0);
         setWzeusValue(data.wzeusValue || 0);
-        setHasMore(data.count === limitVal);
+        setHasMore(data.count === limitVal && !address);
+        setIsSearching(!!address);
       } else {
         setError(data.error || 'Failed to fetch holders');
+        setHolders([]);
       }
     } catch (err) {
       setError('Failed to fetch holders');
@@ -513,6 +732,46 @@ const Holders: React.FC = () => {
     fetchHolders(newOffset, 10, true);
   };
 
+  // Search handlers
+  const handleSearch = () => {
+    if (!searchAddress.trim()) return;
+
+    setError('');
+    setOffset(0);
+    fetchHolders(0, 10, false, searchAddress.trim());
+
+    // Add to history
+    const newHistory = addToSearchHistory(searchAddress.trim());
+    setSearchHistory(newHistory);
+  };
+
+  const handleClearSearch = () => {
+    setSearchAddress('');
+    setError('');
+    setOffset(0);
+    setIsSearching(false);
+    fetchHolders(0, 10);
+  };
+
+  const handleHistoryClick = (address: string) => {
+    setSearchAddress(address);
+    setError('');
+    setOffset(0);
+    fetchHolders(0, 10, false, address);
+  };
+
+  const handleDeleteHistory = (address: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newHistory = removeFromSearchHistory(address);
+    setSearchHistory(newHistory);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   // Format USD value with K/M suffix and American format
   const formatUSD = (value: string): string => {
     const num = parseFloat(value);
@@ -526,6 +785,19 @@ const Holders: React.FC = () => {
     } else {
       // For very small values, show more decimals
       return `$${num.toFixed(6)}`;
+    }
+  };
+
+  // Format large numbers with K/M/B suffix
+  const formatLargeNumber = (value: number): string => {
+    if (value >= 1_000_000_000) {
+      return `$${(value / 1_000_000_000).toFixed(2)}B`;
+    } else if (value >= 1_000_000) {
+      return `$${(value / 1_000_000).toFixed(2)}M`;
+    } else if (value >= 1_000) {
+      return `$${(value / 1_000).toFixed(2)}K`;
+    } else {
+      return `$${value.toFixed(2)}`;
     }
   };
 
@@ -594,11 +866,47 @@ const Holders: React.FC = () => {
 
         {(marketCap > 0 || wzeusValue > 0) && (
           <PriceDisplay>
-            {marketCap > 0 && `Market Cap: $${(marketCap / 1_000_000).toFixed(2)}M`}
+            {marketCap > 0 && `Market Cap: ${formatLargeNumber(marketCap)}`}
             {marketCap > 0 && wzeusValue > 0 && ' | '}
-            {wzeusValue > 0 && `wZEUS Value: $${(wzeusValue / 1_000_000).toFixed(2)}M`}
+            {wzeusValue > 0 && `wZEUS Value: ${formatLargeNumber(wzeusValue)}`}
           </PriceDisplay>
         )}
+
+        <SearchContainer>
+          <SearchWrapper>
+            <SearchInput
+              type="text"
+              placeholder="Search by address (0x...)"
+              value={searchAddress}
+              onChange={(e) => setSearchAddress(e.target.value)}
+              onKeyPress={handleKeyPress}
+            />
+            <SearchButton onClick={handleSearch} disabled={!searchAddress.trim()}>
+              Search
+            </SearchButton>
+            {isSearching && (
+              <ClearButton onClick={handleClearSearch}>
+                Clear
+              </ClearButton>
+            )}
+          </SearchWrapper>
+
+          {searchHistory.length > 0 && (
+            <HistoryContainer>
+              {searchHistory.map((addr, index) => (
+                <HistoryButton
+                  key={index}
+                  onClick={() => handleHistoryClick(addr)}
+                >
+                  {addr.length > 12 ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : addr}
+                  <DeleteIcon onClick={(e) => handleDeleteHistory(addr, e)}>
+                    ×
+                  </DeleteIcon>
+                </HistoryButton>
+              ))}
+            </HistoryContainer>
+          )}
+        </SearchContainer>
 
         <TableWrapper>
           <Table>

@@ -410,6 +410,65 @@ async function getAdditionalHolders(viemClient, decimals, totalSupply, zeusPrice
   return holdersWithData;
 }
 
+// Search for a specific address
+async function searchAddress(address, viemClient, decimals, totalSupply, zeusPrice) {
+  try {
+    const normalizedAddress = address.toLowerCase();
+
+    // Check if address is valid
+    if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
+      return null;
+    }
+
+    const zeusContract = getContract({
+      address: ZEUS_TOKEN_ADDRESS,
+      abi: ERC20_ABI,
+      client: viemClient
+    });
+
+    const wzeusContract = getContract({
+      address: WZEUS_TOKEN_ADDRESS,
+      abi: ERC20_ABI,
+      client: viemClient
+    });
+
+    // Fetch balances for both tokens
+    const [zeusBalance, wzeusBalance, ensName] = await Promise.all([
+      zeusContract.read.balanceOf([address]),
+      wzeusContract.read.balanceOf([address]),
+      resolveENS(address, viemClient)
+    ]);
+
+    const zeusBalanceBigInt = BigInt(zeusBalance.toString());
+    const wzeusBalanceBigInt = BigInt(wzeusBalance.toString());
+    const totalBalance = zeusBalanceBigInt + wzeusBalanceBigInt;
+
+    // If no balance, return null
+    if (totalBalance === 0n) {
+      return null;
+    }
+
+    const rawTotal = getRawBalance(totalBalance.toString(), decimals);
+    const usdValue = rawTotal * zeusPrice;
+    const supplyPercentage = ((rawTotal / getRawBalance(totalSupply.toString(), decimals)) * 100).toFixed(4);
+
+    return {
+      rank: null, // Will be calculated if needed
+      address: address,
+      ensName: ensName,
+      zeusBalance: formatBalance(zeusBalanceBigInt.toString(), decimals),
+      wzeusBalance: formatBalance(wzeusBalanceBigInt.toString(), decimals),
+      totalBalance: formatBalance(totalBalance.toString(), decimals),
+      totalBalanceRaw: rawTotal,
+      usdValue: usdValue.toFixed(2),
+      supplyPercentage: `${supplyPercentage}%`
+    };
+  } catch (error) {
+    console.error('Error searching address:', error);
+    return null;
+  }
+}
+
 module.exports = async (req, res) => {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -425,7 +484,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { offset = '0', limit = '10' } = req.query;
+    const { offset = '0', limit = '10', address } = req.query;
     const offsetNum = parseInt(offset);
     const limitNum = parseInt(limit);
 
@@ -459,26 +518,40 @@ module.exports = async (req, res) => {
 
     let holders = [];
 
-    if (offsetNum === 0 && limitNum <= 10) {
-      // Return top 10 from cache
-      holders = await getTop10Holders(client, decimals, totalSupply, zeusPrice);
-      holders = holders.slice(0, limitNum);
-    } else if (offsetNum < 10) {
-      // Return combination of cached top 10 and additional
-      const top10 = await getTop10Holders(client, decimals, totalSupply, zeusPrice);
-      const cachedPart = top10.slice(offsetNum, Math.min(10, offsetNum + limitNum));
-
-      if (offsetNum + limitNum > 10) {
-        // Need additional holders beyond top 10
-        const additionalNeeded = (offsetNum + limitNum) - 10;
-        const additional = await getAdditionalHolders(client, decimals, totalSupply, zeusPrice, 10, additionalNeeded);
-        holders = [...cachedPart, ...additional];
+    // Check if searching for a specific address
+    if (address) {
+      const holder = await searchAddress(address, client, decimals, totalSupply, zeusPrice);
+      if (holder) {
+        holders = [holder];
       } else {
-        holders = cachedPart;
+        return res.status(404).json({
+          success: false,
+          error: 'Address not found or has no balance'
+        });
       }
     } else {
-      // All additional holders (real-time)
-      holders = await getAdditionalHolders(client, decimals, totalSupply, zeusPrice, offsetNum, limitNum);
+      // Normal pagination flow
+      if (offsetNum === 0 && limitNum <= 10) {
+        // Return top 10 from cache
+        holders = await getTop10Holders(client, decimals, totalSupply, zeusPrice);
+        holders = holders.slice(0, limitNum);
+      } else if (offsetNum < 10) {
+        // Return combination of cached top 10 and additional
+        const top10 = await getTop10Holders(client, decimals, totalSupply, zeusPrice);
+        const cachedPart = top10.slice(offsetNum, Math.min(10, offsetNum + limitNum));
+
+        if (offsetNum + limitNum > 10) {
+          // Need additional holders beyond top 10
+          const additionalNeeded = (offsetNum + limitNum) - 10;
+          const additional = await getAdditionalHolders(client, decimals, totalSupply, zeusPrice, 10, additionalNeeded);
+          holders = [...cachedPart, ...additional];
+        } else {
+          holders = cachedPart;
+        }
+      } else {
+        // All additional holders (real-time)
+        holders = await getAdditionalHolders(client, decimals, totalSupply, zeusPrice, offsetNum, limitNum);
+      }
     }
 
     // Calculate market cap and wZEUS value

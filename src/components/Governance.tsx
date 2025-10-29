@@ -425,6 +425,45 @@ const UnwrapButton = styled(ActionButton)`
   background: linear-gradient(135deg, #1E90FF 0%, #4169E1 100%);
 `;
 
+const AddTokenButton = styled(motion.button)`
+  background: linear-gradient(135deg, #9370DB 0%, #8A2BE2 100%);
+  color: #fff;
+  padding: 1rem 2rem;
+  border-radius: 60px;
+  font-weight: 800;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-family: var(--font-display);
+  border: 3px solid #000;
+  box-shadow: 0 5px 0 #000, 0 7px 18px rgba(138, 43, 226, 0.4);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 0 #000, 0 10px 25px rgba(138, 43, 226, 0.6);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 0 #000, 0 4px 12px rgba(138, 43, 226, 0.4);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(50%);
+  }
+`;
+
 const DisconnectButton = styled(motion.button)`
   background: rgba(255, 0, 0, 0.1);
   color: #ff6b6b;
@@ -834,6 +873,38 @@ const Governance: React.FC = () => {
     }
   };
 
+  const handleAddTokenToWallet = async () => {
+    try {
+      // Check if window.ethereum is available (MetaMask or other Web3 wallet)
+      if (typeof window !== 'undefined' && (window as any).ethereum) {
+        const wasAdded = await (window as any).ethereum.request({
+          method: 'wallet_watchAsset',
+          params: {
+            type: 'ERC20',
+            options: {
+              address: WZEUS_TOKEN_ADDRESS,
+              symbol: 'wZEUS',
+              decimals: 9,
+              image: 'https://zeusarmy.xyz/images/zeus-logo.png', // You can update this with the actual wZEUS logo URL
+            },
+          },
+        });
+
+        if (wasAdded) {
+          setStatus({ type: 'success', message: 'wZEUS token added to your wallet!' });
+          setTimeout(() => setStatus(null), 3000);
+        }
+      } else {
+        setStatus({ type: 'error', message: 'Web3 wallet not detected. Please install MetaMask or another Web3 wallet.' });
+        setTimeout(() => setStatus(null), 5000);
+      }
+    } catch (error: any) {
+      console.error('Add token error:', error);
+      setStatus({ type: 'error', message: 'Failed to add token to wallet. Please try again.' });
+      setTimeout(() => setStatus(null), 3000);
+    }
+  };
+
   // Only consider transaction loading states when we have a valid hash
   const isProcessing = isApproving ||
                       (approveHash && isApproveTxLoading) ||
@@ -942,6 +1013,14 @@ const Governance: React.FC = () => {
                   </BalanceAmount>
                 </BalanceItem>
               </BalanceCard>
+
+              <AddTokenButton
+                onClick={handleAddTokenToWallet}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <span>➕</span> Add wZEUS to Wallet
+              </AddTokenButton>
 
               <RadioGroup>
                 <RadioOption $checked={mode === 'wrap'}>

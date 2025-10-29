@@ -14,9 +14,6 @@ interface Holder {
   supplyPercentage: string;
 }
 
-type SortField = 'rank' | 'totalBalanceRaw' | 'usdValue';
-type SortOrder = 'asc' | 'desc';
-
 // Styled Components
 const HoldersSection = styled.section`
   min-height: 100vh;
@@ -128,43 +125,6 @@ const TableWrapper = styled.div`
   @keyframes shimmer {
     0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
     100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-  }
-`;
-
-const TableControls = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-
-  @media (max-width: 768px) {
-    justify-content: center;
-  }
-`;
-
-const SortButton = styled.button<{ active: boolean }>`
-  padding: 0.75rem 1.5rem;
-  background: ${props => props.active
-    ? 'linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%)'
-    : 'rgba(255, 215, 0, 0.1)'};
-  border: 2px solid ${props => props.active ? '#FFD700' : 'rgba(255, 215, 0, 0.3)'};
-  border-radius: 12px;
-  color: ${props => props.active ? '#0a0e27' : '#FFD700'};
-  font-family: var(--font-body);
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-shadow: ${props => props.active ? 'none' : '0 0 10px rgba(255, 215, 0, 0.5)'};
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
-  }
-
-  &:active {
-    transform: translateY(0);
   }
 `;
 
@@ -493,8 +453,6 @@ const Holders: React.FC = () => {
   const [marketCap, setMarketCap] = useState<number>(0);
   const [offset, setOffset] = useState<number>(0);
   const [hasMore, setHasMore] = useState<boolean>(true);
-  const [sortField, setSortField] = useState<SortField>('rank');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const tableBodyRef = useRef<HTMLDivElement>(null);
 
   // Fetch holders
@@ -541,33 +499,6 @@ const Holders: React.FC = () => {
     setOffset(newOffset);
     fetchHolders(newOffset, 10, true);
   };
-
-  // Sorting
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      // Toggle order
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      // New field, default to desc for balance/price, asc for rank
-      setSortField(field);
-      setSortOrder(field === 'rank' ? 'asc' : 'desc');
-    }
-  };
-
-  // Apply sorting
-  const sortedHolders = [...holders].sort((a, b) => {
-    let compareValue = 0;
-
-    if (sortField === 'rank') {
-      compareValue = a.rank - b.rank;
-    } else if (sortField === 'totalBalanceRaw') {
-      compareValue = a.totalBalanceRaw - b.totalBalanceRaw;
-    } else if (sortField === 'usdValue') {
-      compareValue = parseFloat(a.usdValue) - parseFloat(b.usdValue);
-    }
-
-    return sortOrder === 'asc' ? compareValue : -compareValue;
-  });
 
   // Format USD value with K/M suffix and American format
   const formatUSD = (value: string): string => {
@@ -643,25 +574,10 @@ const Holders: React.FC = () => {
         )}
 
         <TableWrapper>
-          <TableControls>
-            <SortButton
-              active={sortField === 'totalBalanceRaw'}
-              onClick={() => handleSort('totalBalanceRaw')}
-            >
-              Sort by Balance {sortField === 'totalBalanceRaw' && (sortOrder === 'asc' ? '↑' : '↓')}
-            </SortButton>
-            <SortButton
-              active={sortField === 'usdValue'}
-              onClick={() => handleSort('usdValue')}
-            >
-              Sort by USD Value {sortField === 'usdValue' && (sortOrder === 'asc' ? '↑' : '↓')}
-            </SortButton>
-          </TableControls>
-
           <Table>
             <TableHeader>
               <TableHeaderCell>Rank</TableHeaderCell>
-              <TableHeaderCell>Address / ENS</TableHeaderCell>
+              <TableHeaderCell>Holder</TableHeaderCell>
               <TableHeaderCell>ZEUS</TableHeaderCell>
               <TableHeaderCell>wZEUS</TableHeaderCell>
               <TableHeaderCell>Total</TableHeaderCell>
@@ -669,7 +585,7 @@ const Holders: React.FC = () => {
             </TableHeader>
 
             <TableBody ref={tableBodyRef}>
-              {sortedHolders.map((holder) => (
+              {holders.map((holder) => (
                 <TableRow key={holder.address} isTop3={holder.rank <= 3}>
                   <TableCell>
                     <Rank rank={holder.rank}>#{holder.rank}</Rank>

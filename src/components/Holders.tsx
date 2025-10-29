@@ -17,6 +17,7 @@ interface Holder {
 // Known addresses mapping (exchanges, services, etc.)
 const KNOWN_ADDRESSES: { [key: string]: string } = {
   '0xf97503af8230a7e72909d6614f45e88168ff3c10': 'Uniswap',
+  '0xf335788b2251dec93332310d96d15500cdc4c34b': 'CoinEx',
   '0x58edf78281334335effa23101bbe3371b6a36a51': 'Kucoin',
   '0x2933782b5a8d72f2754103d1489614f29bfa4625': 'Kucoin',
   '0x120051a72966950b8ce12eb5496b5d1eeec1541b': 'L3Bank',

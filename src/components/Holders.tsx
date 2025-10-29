@@ -14,6 +14,16 @@ interface Holder {
   supplyPercentage: string;
 }
 
+// Known addresses mapping (exchanges, services, etc.)
+const KNOWN_ADDRESSES: { [key: string]: string } = {
+  '0xf97503af8230a7e72909d6614f45e88168ff3c10': 'Uniswap',
+  '0x58edf78281334335effa23101bbe3371b6a36a51': 'Kucoin',
+  '0x2933782b5a8d72f2754103d1489614f29bfa4625': 'Kucoin',
+  '0x120051a72966950b8ce12eb5496b5d1eeec1541b': 'L3Bank',
+  '0xd6216fc19db775df9774a6e33526131da7d19a2c': 'Kucoin',
+  '0xb8e6d31e7b212b2b7250ee9c26c56cebbfbe6b23': 'Kucoin',
+};
+
 // Styled Components
 const HoldersSection = styled.section`
   min-height: 100vh;
@@ -518,8 +528,19 @@ const Holders: React.FC = () => {
 
   // Format address for display
   const formatAddress = (address: string, ensName: string | null) => {
-    const zapperUrl = `https://zapper.xyz/es/account/${ensName || address}`;
+    const zapperUrl = `https://zapper.xyz/es/account/${address}`;
 
+    // Check if it's a known address (exchange, service, etc.)
+    const knownName = KNOWN_ADDRESSES[address.toLowerCase()];
+    if (knownName) {
+      return (
+        <AddressLink href={zapperUrl} target="_blank" rel="noopener noreferrer">
+          <ENSName>{knownName}</ENSName>
+        </AddressLink>
+      );
+    }
+
+    // Check for ENS name
     if (ensName) {
       return (
         <AddressLink href={zapperUrl} target="_blank" rel="noopener noreferrer">
@@ -528,6 +549,7 @@ const Holders: React.FC = () => {
       );
     }
 
+    // Default: show shortened address
     const shortened = `${address.slice(0, 6)}...${address.slice(-4)}`;
     return (
       <AddressLink href={zapperUrl} target="_blank" rel="noopener noreferrer">

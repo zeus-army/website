@@ -686,11 +686,13 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { offset = '0', limit = '10', address, lpOnly, lpOffset = '0', lpLimit = '5' } = req.query;
+    const { offset = '0', limit = '10', address, lpOnly, lpOffset = '0', lpLimit = '5', wzeusOnly, wzeusOffset = '0', wzeusLimit = '5' } = req.query;
     const offsetNum = parseInt(offset);
     const limitNum = parseInt(limit);
     const lpOffsetNum = parseInt(lpOffset);
     const lpLimitNum = parseInt(lpLimit);
+    const wzeusOffsetNum = parseInt(wzeusOffset);
+    const wzeusLimitNum = parseInt(wzeusLimit);
 
     // Create viem client
     const client = createPublicClient({
@@ -761,6 +763,49 @@ module.exports = async (req, res) => {
         limit: lpLimitNum,
         count: lpHoldersFormatted.length,
         totalLPHolders: lpHoldersRaw.length
+      });
+    }
+
+    // If wzeusOnly is requested, return only wZEUS holders
+    if (wzeusOnly === 'true') {
+      const wzeusHoldersRaw = await fetchHoldersWithAlchemy(client, WZEUS_TOKEN_ADDRESS, 500);
+      const wzeusHoldersSlice = wzeusHoldersRaw.slice(wzeusOffsetNum, wzeusOffsetNum + wzeusLimitNum);
+
+      // Format wZEUS holders with all data
+      const wzeusHoldersFormatted = await Promise.all(
+        wzeusHoldersSlice.map(async (holder) => {
+          const ensName = await resolveENS(holder.address, client);
+          const rawBalance = getRawBalance(holder.balance, decimals);
+          const usdValue = rawBalance * zeusPrice;
+          const supplyPercentage = ((rawBalance / getRawBalance(totalSupply.toString(), decimals)) * 100).toFixed(4);
+
+          return {
+            rank: wzeusOffsetNum + wzeusHoldersSlice.indexOf(holder) + 1,
+            address: holder.address,
+            ensName: ensName,
+            zeusBalance: formatBalance('0', decimals),
+            wzeusBalance: formatBalance(holder.balance, decimals),
+            lpZeusBalance: formatBalance('0', decimals),
+            totalBalance: formatBalance(holder.balance, decimals),
+            totalBalanceRaw: rawBalance,
+            usdValue: usdValue.toFixed(2),
+            supplyPercentage: `${supplyPercentage}%`
+          };
+        })
+      );
+
+      return res.status(200).json({
+        success: true,
+        data: wzeusHoldersFormatted,
+        price: zeusPrice,
+        marketCap: 0,
+        wzeusValue: 0,
+        totalSupply: 0,
+        wzeusSupply: 0,
+        offset: wzeusOffsetNum,
+        limit: wzeusLimitNum,
+        count: wzeusHoldersFormatted.length,
+        totalWZEUSHolders: wzeusHoldersRaw.length
       });
     }
 

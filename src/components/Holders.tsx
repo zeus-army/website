@@ -19,6 +19,7 @@ interface Holder {
 const KNOWN_ADDRESSES: { [key: string]: string } = {
   '0x000000000000000000000000000000000000dead': 'Liquidity Renounced',
   '0xf97503af8230a7e72909d6614f45e88168ff3c10': 'Uniswap',
+  '0xa56b06aa7bfa6cbad8a0b5161ca052d86a5d88e9': 'wZEUS',
   '0xf335788b2251dec93332310d96d15500cdc4c34b': 'CoinEx',
   '0x58edf78281334335effa23101bbe3371b6a36a51': 'Kucoin',
   '0x2933782b5a8d72f2754103d1489614f29bfa4625': 'Kucoin',
@@ -763,6 +764,10 @@ const Holders: React.FC = () => {
   const [lpOffset, setLpOffset] = useState<{ [key: string]: number }>({});
   const [lpLoading, setLpLoading] = useState<{ [key: string]: boolean }>({});
   const [totalLPHolders, setTotalLPHolders] = useState<number>(0);
+  const [wzeusHolders, setWzeusHolders] = useState<{ [key: string]: Holder[] }>({});
+  const [wzeusOffset, setWzeusOffset] = useState<{ [key: string]: number }>({});
+  const [wzeusLoading, setWzeusLoading] = useState<{ [key: string]: boolean }>({});
+  const [totalWZEUSHolders, setTotalWZEUSHolders] = useState<number>(0);
   const tableBodyRef = useRef<HTMLDivElement>(null);
 
   // Load search history on mount
@@ -879,10 +884,12 @@ const Holders: React.FC = () => {
     }
   };
 
-  // Toggle row expansion for Uniswap pool
+  // Toggle row expansion for Uniswap pool or wZEUS contract
   const toggleRowExpansion = async (address: string) => {
     console.log('Toggle row expansion for:', address);
     const newExpanded = new Set(expandedRows);
+    const isUniswap = address.toLowerCase() === '0xf97503af8230a7e72909d6614f45e88168ff3c10';
+    const isWZEUS = address.toLowerCase() === '0xa56b06aa7bfa6cbad8a0b5161ca052d86a5d88e9';
 
     if (expandedRows.has(address)) {
       // Collapse
@@ -890,17 +897,27 @@ const Holders: React.FC = () => {
       newExpanded.delete(address);
       setExpandedRows(newExpanded);
     } else {
-      // Expand and fetch LP holders
+      // Expand and fetch holders
       console.log('Expanding...');
       newExpanded.add(address);
       setExpandedRows(newExpanded);
 
-      // Only fetch if we don't have data yet
-      if (!lpHolders[address]) {
-        console.log('Fetching LP holders for first time...');
-        await fetchLPHolders(address, 0);
-      } else {
-        console.log('LP holders already loaded:', lpHolders[address].length);
+      if (isUniswap) {
+        // Fetch LP holders
+        if (!lpHolders[address]) {
+          console.log('Fetching LP holders for first time...');
+          await fetchLPHolders(address, 0);
+        } else {
+          console.log('LP holders already loaded:', lpHolders[address].length);
+        }
+      } else if (isWZEUS) {
+        // Fetch wZEUS holders
+        if (!wzeusHolders[address]) {
+          console.log('Fetching wZEUS holders for first time...');
+          await fetchWZEUSHolders(address, 0);
+        } else {
+          console.log('wZEUS holders already loaded:', wzeusHolders[address].length);
+        }
       }
     }
   };
@@ -940,6 +957,43 @@ const Holders: React.FC = () => {
   const handleLoadMoreLPHolders = (poolAddress: string) => {
     const currentOffset = lpOffset[poolAddress] || 0;
     fetchLPHolders(poolAddress, currentOffset);
+  };
+
+  // Fetch wZEUS holders for the wZEUS contract
+  const fetchWZEUSHolders = async (contractAddress: string, offset: number) => {
+    try {
+      console.log(`Fetching wZEUS holders: offset=${offset}, limit=5`);
+      setWzeusLoading({ ...wzeusLoading, [contractAddress]: true });
+
+      const response = await fetch(`/api/holders?wzeusOnly=true&wzeusOffset=${offset}&wzeusLimit=5`);
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('wZEUS holders data:', data);
+
+      if (data.success) {
+        const existingHolders = wzeusHolders[contractAddress] || [];
+        console.log(`Existing holders: ${existingHolders.length}, New: ${data.data.length}`);
+        setWzeusHolders({
+          ...wzeusHolders,
+          [contractAddress]: [...existingHolders, ...data.data]
+        });
+        setWzeusOffset({ ...wzeusOffset, [contractAddress]: offset + data.count });
+        setTotalWZEUSHolders(data.totalWZEUSHolders || 0);
+        console.log('Total wZEUS holders:', data.totalWZEUSHolders);
+      } else {
+        console.error('API returned success=false:', data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch wZEUS holders:', err);
+    } finally {
+      setWzeusLoading({ ...wzeusLoading, [contractAddress]: false });
+    }
+  };
+
+  // Load more wZEUS holders
+  const handleLoadMoreWZEUSHolders = (contractAddress: string) => {
+    const currentOffset = wzeusOffset[contractAddress] || 0;
+    fetchWZEUSHolders(contractAddress, currentOffset);
   };
 
   // Format USD value with K/M suffix and American format
@@ -1092,10 +1146,15 @@ const Holders: React.FC = () => {
             <TableBody ref={tableBodyRef}>
               {holders.map((holder) => {
                 const isUniswap = holder.address.toLowerCase() === '0xf97503af8230a7e72909d6614f45e88168ff3c10';
+                const isWZEUS = holder.address.toLowerCase() === '0xa56b06aa7bfa6cbad8a0b5161ca052d86a5d88e9';
+                const isExpandable = isUniswap || isWZEUS;
                 const isExpanded = expandedRows.has(holder.address);
                 const poolLPHolders = lpHolders[holder.address] || [];
                 const currentLPOffset = lpOffset[holder.address] || 0;
                 const hasMoreLP = currentLPOffset < totalLPHolders;
+                const poolWZEUSHolders = wzeusHolders[holder.address] || [];
+                const currentWZEUSOffset = wzeusOffset[holder.address] || 0;
+                const hasMoreWZEUS = currentWZEUSOffset < totalWZEUSHolders;
 
                 return (
                   <React.Fragment key={holder.address}>
@@ -1104,7 +1163,7 @@ const Holders: React.FC = () => {
                         <Rank rank={holder.rank}>#{holder.rank}</Rank>
                       </TableCell>
                       <TableCell>
-                        {isUniswap && (
+                        {isExpandable && (
                           <ExpandButton
                             className={isExpanded ? 'expanded' : ''}
                             onClick={() => toggleRowExpansion(holder.address)}
@@ -1167,6 +1226,47 @@ const Holders: React.FC = () => {
                             disabled={lpLoading[holder.address]}
                           >
                             {lpLoading[holder.address] ? 'Loading...' : `Show More LP Holders (${totalLPHolders - currentLPOffset} remaining)`}
+                          </ShowMoreLPButton>
+                        )}
+                      </>
+                    )}
+
+                    {/* Render wZEUS holders if expanded */}
+                    {isWZEUS && isExpanded && (
+                      <>
+                        {poolWZEUSHolders.map((wzeusHolder, idx) => (
+                          <SubRow key={`${holder.address}-wzeus-${idx}`}>
+                            <TableCell>
+                              <Rank rank={wzeusHolder.rank}>#{wzeusHolder.rank}</Rank>
+                            </TableCell>
+                            <TableCell>
+                              {formatAddress(wzeusHolder.address, wzeusHolder.ensName)}
+                            </TableCell>
+                            <TableCell>
+                              <Balance>{wzeusHolder.zeusBalance}</Balance>
+                            </TableCell>
+                            <TableCell>
+                              <Balance>{wzeusHolder.wzeusBalance}</Balance>
+                            </TableCell>
+                            <TableCell>
+                              <Balance>{wzeusHolder.lpZeusBalance}</Balance>
+                            </TableCell>
+                            <TableCell>
+                              <Balance>{wzeusHolder.totalBalance}</Balance>
+                            </TableCell>
+                            <TableCell>
+                              <USDValue>{formatUSD(wzeusHolder.usdValue)}</USDValue>
+                            </TableCell>
+                          </SubRow>
+                        ))}
+
+                        {/* Show more button */}
+                        {hasMoreWZEUS && (
+                          <ShowMoreLPButton
+                            onClick={() => handleLoadMoreWZEUSHolders(holder.address)}
+                            disabled={wzeusLoading[holder.address]}
+                          >
+                            {wzeusLoading[holder.address] ? 'Loading...' : `Show More wZEUS Holders (${totalWZEUSHolders - currentWZEUSOffset} remaining)`}
                           </ShowMoreLPButton>
                         )}
                       </>

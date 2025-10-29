@@ -462,6 +462,7 @@ const Holders: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [price, setPrice] = useState<number>(0);
   const [marketCap, setMarketCap] = useState<number>(0);
+  const [wzeusValue, setWzeusValue] = useState<number>(0);
   const [offset, setOffset] = useState<number>(0);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const tableBodyRef = useRef<HTMLDivElement>(null);
@@ -486,6 +487,7 @@ const Holders: React.FC = () => {
         }
         setPrice(data.price);
         setMarketCap(data.marketCap || 0);
+        setWzeusValue(data.wzeusValue || 0);
         setHasMore(data.count === limitVal);
       } else {
         setError(data.error || 'Failed to fetch holders');
@@ -590,9 +592,11 @@ const Holders: React.FC = () => {
           1:1 ratio between both tokens.
         </Description>
 
-        {marketCap > 0 && (
+        {(marketCap > 0 || wzeusValue > 0) && (
           <PriceDisplay>
-            Market Cap: ${(marketCap / 1_000_000).toFixed(2)}M
+            {marketCap > 0 && `Market Cap: $${(marketCap / 1_000_000).toFixed(2)}M`}
+            {marketCap > 0 && wzeusValue > 0 && ' | '}
+            {wzeusValue > 0 && `wZEUS Value: $${(wzeusValue / 1_000_000).toFixed(2)}M`}
           </PriceDisplay>
         )}
 

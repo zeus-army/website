@@ -441,10 +441,17 @@ module.exports = async (req, res) => {
       client: client
     });
 
-    // Get decimals, total supply, and price
-    const [decimals, totalSupply, zeusPrice] = await Promise.all([
+    const wzeusContract = getContract({
+      address: WZEUS_TOKEN_ADDRESS,
+      abi: ERC20_ABI,
+      client: client
+    });
+
+    // Get decimals, total supply, wZEUS supply, and price
+    const [decimals, totalSupply, wzeusSupply, zeusPrice] = await Promise.all([
       zeusContract.read.decimals(),
       zeusContract.read.totalSupply(),
+      wzeusContract.read.totalSupply(),
       fetchZeusPrice()
     ]);
 
@@ -474,16 +481,20 @@ module.exports = async (req, res) => {
       holders = await getAdditionalHolders(client, decimals, totalSupply, zeusPrice, offsetNum, limitNum);
     }
 
-    // Calculate market cap
+    // Calculate market cap and wZEUS value
     const totalSupplyRaw = getRawBalance(totalSupply.toString(), decimals);
+    const wzeusSupplyRaw = getRawBalance(wzeusSupply.toString(), decimals);
     const marketCap = totalSupplyRaw * zeusPrice;
+    const wzeusValue = wzeusSupplyRaw * zeusPrice;
 
     return res.status(200).json({
       success: true,
       data: holders,
       price: zeusPrice,
       marketCap: marketCap,
+      wzeusValue: wzeusValue,
       totalSupply: totalSupplyRaw,
+      wzeusSupply: wzeusSupplyRaw,
       offset: offsetNum,
       limit: limitNum,
       count: holders.length

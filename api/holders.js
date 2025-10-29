@@ -474,10 +474,16 @@ module.exports = async (req, res) => {
       holders = await getAdditionalHolders(client, decimals, totalSupply, zeusPrice, offsetNum, limitNum);
     }
 
+    // Calculate market cap
+    const totalSupplyRaw = getRawBalance(totalSupply.toString(), decimals);
+    const marketCap = totalSupplyRaw * zeusPrice;
+
     return res.status(200).json({
       success: true,
       data: holders,
       price: zeusPrice,
+      marketCap: marketCap,
+      totalSupply: totalSupplyRaw,
       offset: offsetNum,
       limit: limitNum,
       count: holders.length

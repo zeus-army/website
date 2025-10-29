@@ -458,6 +458,7 @@ const Holders: React.FC = () => {
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [price, setPrice] = useState<number>(0);
+  const [marketCap, setMarketCap] = useState<number>(0);
   const [offset, setOffset] = useState<number>(0);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [sortField, setSortField] = useState<SortField>('rank');
@@ -483,6 +484,7 @@ const Holders: React.FC = () => {
           setHolders(data.data);
         }
         setPrice(data.price);
+        setMarketCap(data.marketCap || 0);
         setHasMore(data.count === limitVal);
       } else {
         setError(data.error || 'Failed to fetch holders');
@@ -602,20 +604,14 @@ const Holders: React.FC = () => {
           1:1 ratio between both tokens.
         </Description>
 
-        {price > 0 && (
+        {marketCap > 0 && (
           <PriceDisplay>
-            ZEUS Price: ${price.toFixed(6)}
+            Market Cap: ${(marketCap / 1_000_000).toFixed(2)}M
           </PriceDisplay>
         )}
 
         <TableWrapper>
           <TableControls>
-            <SortButton
-              active={sortField === 'rank'}
-              onClick={() => handleSort('rank')}
-            >
-              Sort by Rank {sortField === 'rank' && (sortOrder === 'asc' ? '↑' : '↓')}
-            </SortButton>
             <SortButton
               active={sortField === 'totalBalanceRaw'}
               onClick={() => handleSort('totalBalanceRaw')}

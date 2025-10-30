@@ -59,7 +59,7 @@ module.exports = async (req, res) => {
       label: subname,
       addresses: [
         {
-          chain: 'Ethereum', // Using string as per SDK docs
+          chain: 'eth', // ChainName.Ethereum = 'eth'
           value: address,
         }
       ],

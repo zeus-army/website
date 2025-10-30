@@ -168,6 +168,7 @@ async function fetchZeusPrice() {
 async function buildENSCache() {
   // Check if cache is still valid
   if (Date.now() - lastCacheUpdate < ENS_CACHE_TTL) {
+    console.log(`Using cached ENS data (${ensCache.size} entries)`);
     return;
   }
 
@@ -194,30 +195,37 @@ async function buildENSCache() {
         size: 100
       });
 
-      const subnames = result.data || result.items || result || [];
+      // Namespace SDK returns items array directly
+      const subnames = result.items || result.data || result || [];
 
       for (const subname of subnames) {
-        // Map owner address to subname
-        if (subname.owner) {
-          ensCache.set(subname.owner.toLowerCase(), subname.name);
-          totalSubnames++;
+        // Get the full ENS name - Namespace SDK uses "fullName" field
+        const ensFullName = subname.fullName || (subname.label ? `${subname.label}.${PARENT_ENS}` : null);
+
+        if (!ensFullName) {
+          console.warn('Could not determine ENS name for subname:', subname);
+          continue;
         }
-        // Also check if there's an addresses array with ETH address
-        if (subname.addresses && Array.isArray(subname.addresses)) {
-          const ethAddress = subname.addresses.find(addr => addr.chain === 'eth');
-          if (ethAddress && ethAddress.value) {
-            ensCache.set(ethAddress.value.toLowerCase(), subname.name);
-          }
+
+        // Map address to ENS name
+        // Namespace SDK returns addresses as an object where keys are coin types
+        // Coin type 60 = Ethereum (https://github.com/satoshilabs/slips/blob/master/slip-0044.md)
+        if (subname.addresses && subname.addresses['60']) {
+          const ethAddress = subname.addresses['60'];
+          ensCache.set(ethAddress.toLowerCase(), ensFullName);
+          totalSubnames++;
         }
       }
 
       // Check if there are more pages
-      hasMore = result.page < Math.ceil(result.total / result.size);
+      // If we got a full page of results, there might be more
+      hasMore = subnames.length === result.size;
       page++;
     }
 
     lastCacheUpdate = Date.now();
     console.log(`ENS cache built successfully with ${totalSubnames} subdomains from ${page - 1} pages`);
+    console.log('Cache contents sample:', Array.from(ensCache.entries()).slice(0, 5));
   } catch (error) {
     console.error('Error building ENS cache:', error);
   }
@@ -231,7 +239,6 @@ async function resolveENS(address, viemClient) {
   // Check the cache for zeuscc8.eth subdomains
   const cachedENS = ensCache.get(address.toLowerCase());
   if (cachedENS) {
-    console.log(`Found cached ENS for ${address}: ${cachedENS}`);
     return cachedENS;
   }
 
@@ -242,7 +249,6 @@ async function resolveENS(address, viemClient) {
     });
     return ensName;
   } catch (error) {
-    console.log(`No ENS found for ${address}`);
     return null;
   }
 }

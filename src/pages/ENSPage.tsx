@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import ENSMinting from '../components/ENSMinting';
 import RecentENSRegistrations from '../components/RecentENSRegistrations';
@@ -115,6 +116,22 @@ const IntroText = styled.p`
     background-clip: text;
     font-weight: 900;
   }
+
+  a {
+    background: var(--gradient-zeus);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 900;
+    text-decoration: none;
+    position: relative;
+    transition: all 0.3s ease;
+
+    &:hover {
+      filter: brightness(1.2);
+      text-decoration: underline;
+    }
+  }
 `;
 
 const FeatureList = styled.ul`
@@ -167,7 +184,7 @@ const ENSPage: React.FC = () => {
           </IntroText>
 
           <IntroText>
-            🏆 <strong>Your ENS will be your nickname in the Leadership Registry!</strong> Show your identity
+            🏆 <strong>Your ENS will be your nickname in the <Link to="/holders">Leadership Registry</Link>!</strong> Show your identity
             to the community and be recognized by your chosen name instead of a wallet address.
           </IntroText>
 

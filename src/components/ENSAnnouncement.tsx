@@ -242,7 +242,7 @@ const ENSAnnouncement: React.FC = () => {
             <Description>
               <strong>Stand out in the community</strong> with your own{' '}
               <strong>zeuscc8.eth</strong> subdomain! Make your Ethereum address memorable
-              and show your commitment to Zeus Army. <strong>6+ characters are FREE!</strong> 🎉
+              and show your commitment to Zeus Army. <strong>10+ characters are FREE!</strong> 🎉
             </Description>
           </DescriptionBox>
         </Content>

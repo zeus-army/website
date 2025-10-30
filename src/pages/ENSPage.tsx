@@ -202,7 +202,7 @@ const ENSPage: React.FC = () => {
               <strong>Show your commitment</strong> - Be recognized as a true Zeus Army soldier
             </FeatureItem>
             <FeatureItem>
-              <strong>Special pricing</strong> - 6+ characters are FREE! 🎉
+              <strong>Special pricing</strong> - 10+ characters are FREE! 🎉
             </FeatureItem>
             <FeatureItem>
               <strong>Speculate & Trade</strong> - Collect the most powerful names and sell them on OpenSea! 💎 Get premium ENS before anyone else

@@ -65,6 +65,10 @@ module.exports = async (req, res) => {
       ],
       texts: [
         {
+          key: 'name',
+          value: subname,
+        },
+        {
           key: 'description',
           value: 'Zeus Army Member',
         },

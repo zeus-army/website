@@ -87,18 +87,24 @@ const Title = styled(motion.h2)`
   line-height: 1.2;
 `;
 
-const Description = styled(motion.p)`
+const DescriptionBox = styled(motion.div)`
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(26, 31, 58, 0.8) 100%);
+  border: 2px solid rgba(255, 215, 0, 0.4);
+  border-radius: 15px;
+  padding: 1.5rem 2rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+`;
+
+const Description = styled.p`
   font-family: var(--font-body);
   font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.95);
   line-height: 1.6;
   margin-bottom: 0;
 
   strong {
-    background: var(--gradient-zeus);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #FFD700;
     font-weight: 900;
   }
 
@@ -228,15 +234,17 @@ const ENSAnnouncement: React.FC = () => {
             Get Your Zeus Army ENS! 🌟
           </Title>
 
-          <Description
+          <DescriptionBox
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            <strong>Stand out in the community</strong> with your own{' '}
-            <strong>zeuscc8.eth</strong> subdomain! Make your Ethereum address memorable
-            and show your commitment to Zeus Army. <strong>6+ characters are FREE!</strong> 🎉
-          </Description>
+            <Description>
+              <strong>Stand out in the community</strong> with your own{' '}
+              <strong>zeuscc8.eth</strong> subdomain! Make your Ethereum address memorable
+              and show your commitment to Zeus Army. <strong>6+ characters are FREE!</strong> 🎉
+            </Description>
+          </DescriptionBox>
         </Content>
 
         <motion.div

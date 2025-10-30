@@ -1193,13 +1193,10 @@ const MakeIt: React.FC = () => {
       );
     }
 
-    // Check for ENS name
-    if (ensName) {
-      // If it's a zeuscc8.eth subdomain, show only the nickname part
-      let displayName = ensName;
-      if (ensName.toLowerCase().endsWith('.zeuscc8.eth')) {
-        displayName = ensName.substring(0, ensName.toLowerCase().indexOf('.zeuscc8.eth'));
-      }
+    // Check for ENS name - only show if it's a zeuscc8.eth subdomain
+    if (ensName && ensName.toLowerCase().endsWith('.zeuscc8.eth')) {
+      // Show only the nickname part
+      const displayName = ensName.substring(0, ensName.toLowerCase().indexOf('.zeuscc8.eth'));
 
       return (
         <AddressLink href={zapperUrl} target="_blank" rel="noopener noreferrer">

@@ -58,6 +58,10 @@ const WalletSection = styled.div`
     overflow: hidden !important;
     white-space: nowrap !important;
     max-width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
 
     &:hover {
       transform: translateY(-3px) !important;
@@ -69,6 +73,10 @@ const WalletSection = styled.div`
       overflow: hidden !important;
       text-overflow: ellipsis !important;
       white-space: nowrap !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      line-height: 1 !important;
     }
   }
 `;

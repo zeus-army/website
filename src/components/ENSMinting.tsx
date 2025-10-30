@@ -35,6 +35,34 @@ const SectionTitle = styled.h2`
   text-transform: uppercase;
 `;
 
+const WalletSection = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 2px solid rgba(255, 215, 0, 0.2);
+
+  /* Style the RainbowKit button to match our theme */
+  button {
+    font-family: var(--font-body) !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    border-radius: 60px !important;
+    padding: 1rem 2rem !important;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
+    color: #000 !important;
+    border: 4px solid #000 !important;
+    box-shadow: 0 6px 0 #000, 0 6px 20px rgba(0, 0, 0, 0.3) !important;
+    transition: all 0.3s ease !important;
+
+    &:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 9px 0 #000, 0 9px 25px rgba(0, 0, 0, 0.4) !important;
+    }
+  }
+`;
+
 const InputGroup = styled.div`
   margin-bottom: 2rem;
 `;
@@ -161,6 +189,24 @@ const PricingItem = styled.div<{ highlight?: boolean }>`
   }
 `;
 
+const GasFreeNotice = styled.div`
+  background: linear-gradient(135deg, rgba(75, 183, 73, 0.2), rgba(34, 139, 34, 0.2));
+  border: 2px solid #4BB749;
+  border-radius: 15px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-family: var(--font-body);
+  color: #4BB749;
+  font-weight: 700;
+  font-size: 1.1rem;
+
+  strong {
+    color: #FFD700;
+    text-transform: uppercase;
+  }
+`;
+
 const StatusMessage = styled.div<{ type: 'info' | 'success' | 'error' | 'warning' }>`
   padding: 1rem 1.5rem;
   border-radius: 12px;
@@ -192,6 +238,73 @@ const StatusMessage = styled.div<{ type: 'info' | 'success' | 'error' | 'warning
       default: return '#1E90FF';
     }
   }};
+`;
+
+const SuccessBox = styled.div`
+  background: linear-gradient(135deg, rgba(75, 183, 73, 0.2), rgba(34, 139, 34, 0.15));
+  border: 3px solid #4BB749;
+  border-radius: 20px;
+  padding: 2rem;
+  margin: 2rem 0;
+  text-align: center;
+`;
+
+const SuccessTitle = styled.h3`
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: #4BB749;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 20px rgba(75, 183, 73, 0.5);
+`;
+
+const SuccessText = styled.p`
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+`;
+
+const ManageButton = styled.a`
+  display: inline-block;
+  padding: 1.25rem 3rem;
+  border-radius: 60px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  border: 5px solid #000;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  transform: rotate(-2deg);
+  text-decoration: none;
+  background: linear-gradient(135deg, #4BB749 0%, #2E7D32 100%);
+  color: #000;
+  box-shadow:
+    0 8px 0 #000,
+    0 10px 30px rgba(0, 0, 0, 0.4);
+  text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.5);
+
+  &:hover {
+    transform: translateY(-5px) rotate(-2deg) scale(1.05);
+    box-shadow:
+      0 12px 0 #000,
+      0 15px 40px rgba(75, 183, 73, 0.6);
+  }
+
+  &:active {
+    transform: translateY(0) rotate(-2deg);
+    box-shadow:
+      0 4px 0 #000,
+      0 5px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 1rem 2rem;
+    font-size: 1rem;
+  }
 `;
 
 const ButtonGroup = styled.div`
@@ -305,9 +418,8 @@ const ENSMinting: React.FC = () => {
   const [subname, setSubname] = useState('');
   const [price, setPrice] = useState<number>(0);
   const [priceUSD, setPriceUSD] = useState<number>(0);
-  const [checking, setChecking] = useState(false);
-  const [minting, setMinting] = useState(false);
-  const [available, setAvailable] = useState<boolean | null>(null);
+  const [processing, setProcessing] = useState(false);
+  const [mintedSubname, setMintedSubname] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'info' | 'success' | 'error' | 'warning', text: string } | null>(null);
   const [ethPrice, setEthPrice] = useState<number>(0);
 
@@ -333,9 +445,9 @@ const ENSMinting: React.FC = () => {
   const calculatePrice = (name: string): { eth: number, usd: number } => {
     const length = name.length;
 
-    if (length >= 6) {
+    if (length >= 10) {
       return { eth: 0, usd: 0 }; // FREE!
-    } else if (length >= 4) {
+    } else if (length >= 3) {
       const ethAmount = ethPrice > 0 ? 50 / ethPrice : 0.016; // $50
       return { eth: ethAmount, usd: 50 };
     } else if (length >= 1) {
@@ -356,62 +468,43 @@ const ENSMinting: React.FC = () => {
       const prices = calculatePrice(sanitized);
       setPrice(prices.eth);
       setPriceUSD(prices.usd);
-      setAvailable(null);
       setMessage(null);
+      setMintedSubname(null);
     } else {
       setPrice(0);
       setPriceUSD(0);
-      setAvailable(null);
       setMessage(null);
+      setMintedSubname(null);
     }
   };
 
-  // Check availability
-  const checkAvailability = async () => {
-    if (!subname || subname.length === 0) {
-      setMessage({ type: 'warning', text: 'Please enter a subname' });
-      return;
-    }
-
-    setChecking(true);
-    setMessage(null);
-
-    try {
-      const response = await fetch(`/api/ens/check?subname=${subname}`);
-      const data = await response.json();
-
-      if (data.available) {
-        setAvailable(true);
-        setMessage({ type: 'success', text: `🎉 ${subname}.${PARENT_ENS} is available!` });
-      } else {
-        setAvailable(false);
-        setMessage({ type: 'error', text: `😢 ${subname}.${PARENT_ENS} is already taken` });
-      }
-    } catch (error) {
-      console.error('Error checking availability:', error);
-      setMessage({ type: 'error', text: 'Error checking availability. Please try again.' });
-    } finally {
-      setChecking(false);
-    }
-  };
-
-  // Mint subname
-  const mintSubname = async () => {
+  // Combined check and mint function
+  const handleMint = async () => {
     if (!isConnected || !address) {
       setMessage({ type: 'warning', text: 'Please connect your wallet first' });
       return;
     }
 
-    if (!available) {
-      setMessage({ type: 'warning', text: 'Please check availability first' });
+    if (!subname || subname.length === 0) {
+      setMessage({ type: 'warning', text: 'Please enter a subname' });
       return;
     }
 
-    setMinting(true);
-    setMessage({ type: 'info', text: 'Processing... Please wait ⚡' });
+    setProcessing(true);
+    setMessage({ type: 'info', text: 'Checking availability... 🔍' });
 
     try {
-      // Step 1: Send payment if needed
+      // Step 1: Check availability
+      const checkResponse = await fetch(`/api/ens/check?subname=${subname}`);
+      const checkData = await checkResponse.json();
+
+      if (!checkData.available) {
+        setMessage({ type: 'error', text: `😢 ${subname}.${PARENT_ENS} is already taken` });
+        setProcessing(false);
+        return;
+      }
+
+      // Step 2: Send payment if needed
       if (price > 0) {
         setMessage({ type: 'info', text: 'Sending payment... Please confirm in your wallet 💰' });
 
@@ -428,10 +521,10 @@ const ENSMinting: React.FC = () => {
         setMessage({ type: 'success', text: 'Payment confirmed! Creating your ENS... 🎉' });
       }
 
-      // Step 2: Mint via API
-      setMessage({ type: 'info', text: 'Minting your ENS subname... ✨' });
+      // Step 3: Mint via API (gas-free!)
+      setMessage({ type: 'info', text: 'Minting your ENS subname... ✨ (Gas-free!)' });
 
-      const response = await fetch('/api/ens/mint', {
+      const mintResponse = await fetch('/api/ens/mint', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -442,35 +535,35 @@ const ENSMinting: React.FC = () => {
         }),
       });
 
-      const data = await response.json();
+      const mintData = await mintResponse.json();
 
-      if (data.success) {
+      if (mintData.success) {
+        setMintedSubname(`${subname}.${PARENT_ENS}`);
         setMessage({
           type: 'success',
-          text: `🎊 Success! ${subname}.${PARENT_ENS} is now yours! Welcome to Zeus Army! 🚀`,
+          text: `🎊 Success! ${subname}.${PARENT_ENS} is now yours!`,
         });
         setSubname('');
-        setAvailable(null);
         setPrice(0);
         setPriceUSD(0);
       } else {
-        throw new Error(data.error || 'Minting failed');
+        throw new Error(mintData.error || 'Minting failed');
       }
     } catch (error: any) {
-      console.error('Error minting subname:', error);
+      console.error('Error during mint process:', error);
       setMessage({
         type: 'error',
-        text: `Failed to mint: ${error.message || 'Unknown error'}. Please try again.`,
+        text: `Failed: ${error.message || 'Unknown error'}. Please try again.`,
       });
     } finally {
-      setMinting(false);
+      setProcessing(false);
     }
   };
 
   const getPriceTier = (name: string) => {
     const length = name.length;
-    if (length >= 6) return 'free';
-    if (length >= 4) return 'medium';
+    if (length >= 10) return 'free';
+    if (length >= 3) return 'medium';
     return 'premium';
   };
 
@@ -480,72 +573,94 @@ const ENSMinting: React.FC = () => {
     <MintingContainer>
       <SectionTitle>⚡ Mint Your ENS ⚡</SectionTitle>
 
+      <WalletSection>
+        <ConnectButton />
+      </WalletSection>
+
+      <GasFreeNotice>
+        ⚡ <strong>100% Gas-Free Minting!</strong> ⚡<br />
+        No blockchain fees - just pay the name price (if applicable)
+      </GasFreeNotice>
+
       <PricingInfo>
         <PricingTitle>💰 Pricing</PricingTitle>
         <PricingItem highlight={currentTier === 'free'}>
-          <span>6+ characters</span>
+          <span>10+ characters</span>
           <strong style={{ color: '#4BB749' }}>FREE! 🎉</strong>
         </PricingItem>
         <PricingItem highlight={currentTier === 'medium'}>
-          <span>4-5 characters</span>
+          <span>3-9 characters</span>
           <strong style={{ color: '#FFD700' }}>$50 USD (≈ {ethPrice > 0 ? (50 / ethPrice).toFixed(4) : '0.016'} ETH)</strong>
         </PricingItem>
         <PricingItem highlight={currentTier === 'premium'}>
-          <span>1-3 characters (Premium)</span>
+          <span>1-2 characters (Premium)</span>
           <strong style={{ color: '#FF6B6B' }}>$200 USD (≈ {ethPrice > 0 ? (200 / ethPrice).toFixed(4) : '0.067'} ETH)</strong>
         </PricingItem>
       </PricingInfo>
 
-      <InputGroup>
-        <Label>Choose Your Subname:</Label>
-        <InputWrapper>
-          <Input
-            type="text"
-            placeholder="yourname"
-            value={subname}
-            onChange={(e) => handleSubnameChange(e.target.value)}
-            disabled={minting}
-          />
-          <ENSSuffix>.{PARENT_ENS}</ENSSuffix>
-        </InputWrapper>
-      </InputGroup>
+      {!mintedSubname ? (
+        <>
+          <InputGroup>
+            <Label>Choose Your Subname:</Label>
+            <InputWrapper>
+              <Input
+                type="text"
+                placeholder="yourname"
+                value={subname}
+                onChange={(e) => handleSubnameChange(e.target.value)}
+                disabled={processing}
+              />
+              <ENSSuffix>.{PARENT_ENS}</ENSSuffix>
+            </InputWrapper>
+          </InputGroup>
 
-      {subname && (
-        <StatusMessage type="info">
-          Price: {priceUSD > 0 ? `$${priceUSD} (≈ ${price.toFixed(4)} ETH)` : 'FREE! 🎉'}
-        </StatusMessage>
-      )}
+          {subname && (
+            <StatusMessage type="info">
+              Price: {priceUSD > 0 ? `$${priceUSD} (≈ ${price.toFixed(4)} ETH)` : 'FREE! 🎉'}
+            </StatusMessage>
+          )}
 
-      {message && (
-        <StatusMessage type={message.type}>
-          {message.text}
-        </StatusMessage>
-      )}
+          {message && (
+            <StatusMessage type={message.type}>
+              {message.text}
+            </StatusMessage>
+          )}
 
-      {!isConnected ? (
-        <WalletConnectWrapper>
-          <ConnectButton />
-        </WalletConnectWrapper>
+          {!isConnected ? (
+            <WalletConnectWrapper>
+              <ConnectButton />
+            </WalletConnectWrapper>
+          ) : (
+            <ButtonGroup>
+              <ActionButton
+                variant="primary"
+                onClick={handleMint}
+                disabled={!subname || processing}
+              >
+                {processing && <LoadingSpinner />}
+                {processing ? 'Processing...' : (priceUSD > 0 ? `Mint for $${priceUSD}` : 'Mint FREE! 🎉')}
+              </ActionButton>
+            </ButtonGroup>
+          )}
+        </>
       ) : (
-        <ButtonGroup>
-          <ActionButton
-            variant="secondary"
-            onClick={checkAvailability}
-            disabled={!subname || checking || minting}
+        <SuccessBox>
+          <SuccessTitle>🎊 Congratulations! 🎊</SuccessTitle>
+          <SuccessText>
+            Your ENS <strong>{mintedSubname}</strong> has been successfully minted!
+          </SuccessText>
+          <SuccessText>
+            Now you can <strong>personalize your ENS</strong> with an avatar, bio, social links, and more on the official ENS app.
+            Make your identity truly unique! 🎨✨
+          </SuccessText>
+          <ManageButton
+            href={`https://app.ens.domains/${mintedSubname}`}
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            {checking && <LoadingSpinner />}
-            {checking ? 'Checking...' : 'Check Availability'}
-          </ActionButton>
-
-          <ActionButton
-            variant="primary"
-            onClick={mintSubname}
-            disabled={!available || minting}
-          >
-            {minting && <LoadingSpinner />}
-            {minting ? 'Minting...' : (priceUSD > 0 ? `Mint for $${priceUSD}` : 'Mint FREE! 🎉')}
-          </ActionButton>
-        </ButtonGroup>
+            Manage Your ENS 🎯
+          </ManageButton>
+        </SuccessBox>
       )}
     </MintingContainer>
   );

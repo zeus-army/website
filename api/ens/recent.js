@@ -44,15 +44,20 @@ module.exports = async (req, res) => {
     });
 
     console.log('Recent subnames fetched successfully:', result);
+    console.log('Result structure:', JSON.stringify(result, null, 2));
+
+    // Extract the actual data array from the result
+    const dataArray = result.data || result.items || result;
+    console.log('Data array length:', Array.isArray(dataArray) ? dataArray.length : 'Not an array');
 
     // Return data in a format compatible with the frontend
     return res.status(200).json({
       success: true,
       subnames: {
-        items: result.data || result, // Handle different response structures
-        total: result.total,
-        page: result.page,
-        size: result.size,
+        items: dataArray, // Handle different response structures
+        total: result.total || (Array.isArray(dataArray) ? dataArray.length : 0),
+        page: result.page || 1,
+        size: result.size || (Array.isArray(dataArray) ? dataArray.length : 0),
       },
     });
   } catch (error) {

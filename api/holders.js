@@ -2,6 +2,7 @@ const { createClient } = require('@vercel/kv');
 const { createClient: createRedisClient } = require('redis');
 const { createPublicClient, http, getContract, parseAbi } = require('viem');
 const { mainnet } = require('viem/chains');
+const { createOffchainClient } = require('@thenamespace/offchain-manager');
 
 const ALCHEMY_API_KEY = process.env.ALCHEMY || '';
 const ETHEREUM_RPC_URL = ALCHEMY_API_KEY
@@ -11,9 +12,16 @@ const ZEUS_TOKEN_ADDRESS = '0x0f7dc5d02cc1e1f5ee47854d534d332a1081ccc8';
 const WZEUS_TOKEN_ADDRESS = '0xA56B06AA7Bfa6cbaD8A0b5161ca052d86a5D88E9';
 const UNISWAP_V2_POOL = '0xf97503af8230a7e72909d6614f45e88168ff3c10';
 const COINGECKO_API_KEY = process.env.COINGECKO || '';
+const NAMESPACE_API_KEY = process.env.NAMESPACEAPIKEY;
+const PARENT_ENS = 'zeuscc8.eth';
 
 // Cache duration for top 10 holders (5 minutes)
 const CACHE_DURATION = 5 * 60 * 1000;
+
+// ENS cache for zeuscc8.eth subdomains
+let ensCache = new Map();
+let lastCacheUpdate = 0;
+const ENS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 // Minimal ERC20 ABI
 const ERC20_ABI = parseAbi([
@@ -156,8 +164,78 @@ async function fetchZeusPrice() {
   return 0;
 }
 
+// Build ENS cache for zeuscc8.eth subdomains
+async function buildENSCache() {
+  // Check if cache is still valid
+  if (Date.now() - lastCacheUpdate < ENS_CACHE_TTL) {
+    return;
+  }
+
+  if (!NAMESPACE_API_KEY) {
+    console.warn('NAMESPACE_API_KEY not configured, skipping ENS cache build');
+    return;
+  }
+
+  try {
+    console.log('Building ENS cache for zeuscc8.eth subdomains...');
+    const client = createOffchainClient({
+      defaultApiKey: NAMESPACE_API_KEY,
+    });
+
+    let page = 1;
+    let hasMore = true;
+    ensCache.clear();
+    let totalSubnames = 0;
+
+    while (hasMore) {
+      const result = await client.getFilteredSubnames({
+        parentName: PARENT_ENS,
+        page: page,
+        size: 100
+      });
+
+      const subnames = result.data || result.items || result || [];
+
+      for (const subname of subnames) {
+        // Map owner address to subname
+        if (subname.owner) {
+          ensCache.set(subname.owner.toLowerCase(), subname.name);
+          totalSubnames++;
+        }
+        // Also check if there's an addresses array with ETH address
+        if (subname.addresses && Array.isArray(subname.addresses)) {
+          const ethAddress = subname.addresses.find(addr => addr.chain === 'eth');
+          if (ethAddress && ethAddress.value) {
+            ensCache.set(ethAddress.value.toLowerCase(), subname.name);
+          }
+        }
+      }
+
+      // Check if there are more pages
+      hasMore = result.page < Math.ceil(result.total / result.size);
+      page++;
+    }
+
+    lastCacheUpdate = Date.now();
+    console.log(`ENS cache built successfully with ${totalSubnames} subdomains from ${page - 1} pages`);
+  } catch (error) {
+    console.error('Error building ENS cache:', error);
+  }
+}
+
 // Resolve ENS name for an address
 async function resolveENS(address, viemClient) {
+  // First, try to build/refresh the cache
+  await buildENSCache();
+
+  // Check the cache for zeuscc8.eth subdomains
+  const cachedENS = ensCache.get(address.toLowerCase());
+  if (cachedENS) {
+    console.log(`Found cached ENS for ${address}: ${cachedENS}`);
+    return cachedENS;
+  }
+
+  // Fallback to onchain ENS resolution
   try {
     const ensName = await viemClient.getEnsName({
       address: address,

@@ -1,5 +1,5 @@
-// API route to mint ENS subname using Namespace API
-const axios = require('axios');
+// API route to mint ENS subname using Namespace SDK
+const { createOffchainClient } = require('@thenamespace/offchain-manager');
 
 const NAMESPACE_API_KEY = process.env.NAMESPACEAPIKEY;
 const PARENT_ENS = 'zeuscc8.eth';
@@ -48,64 +48,62 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Mint subname using Namespace API
-    // Reference: https://docs.namespace.tech/dev-docs/offchain-subnames-api/minting/create-a-new-ens-subname
-    const response = await axios.post(
-      'https://api.namespace.tech/v1/subnames',
-      {
-        parent: PARENT_ENS,
-        label: subname,
-        owner: address,
-        // Set address record to point to the owner's address
-        addresses: {
-          eth: address,
-        },
-        // Optional: Add text records
-        texts: {
-          description: 'Zeus Army Member',
-          url: 'https://zeusarmy.com',
-        },
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${NAMESPACE_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    // Initialize Namespace SDK client
+    const client = createOffchainClient({
+      defaultApiKey: NAMESPACE_API_KEY,
+    });
 
-    console.log('Subname minted successfully:', response.data);
+    // Create subname using SDK
+    const result = await client.createSubname({
+      parentName: PARENT_ENS,
+      label: subname,
+      addresses: [
+        {
+          chain: 'Ethereum', // Using string as per SDK docs
+          value: address,
+        }
+      ],
+      texts: [
+        {
+          key: 'description',
+          value: 'Zeus Army Member',
+        },
+        {
+          key: 'url',
+          value: 'https://zeusarmy.com',
+        }
+      ],
+    });
+
+    console.log('Subname minted successfully:', result);
 
     return res.status(200).json({
       success: true,
       message: `${subname}.${PARENT_ENS} has been minted successfully`,
-      data: response.data,
+      data: result,
     });
   } catch (error) {
-    console.error('Error minting subname:', error.response?.data || error.message);
+    console.error('Error minting subname:', error);
 
-    // Handle specific error cases
-    if (error.response) {
-      const status = error.response.status;
-      const errorData = error.response.data;
+    // Handle SDK-specific errors
+    if (error.name === 'SubnameAlreadyExistsError') {
+      return res.status(400).json({
+        error: 'Subname already exists',
+        details: error.message,
+      });
+    }
 
-      if (status === 409) {
-        return res.status(400).json({
-          error: 'Subname already exists',
-          details: errorData,
-        });
-      }
-
-      if (status === 401 || status === 403) {
-        return res.status(500).json({
-          error: 'Authentication error with Namespace API',
-          details: 'Please contact support',
-        });
-      }
-
+    if (error.name === 'AuthenticationError') {
       return res.status(500).json({
-        error: 'Error minting subname',
-        details: errorData,
+        error: 'Authentication error with Namespace API',
+        details: 'Please contact support',
+      });
+    }
+
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        error: 'Validation error',
+        details: error.message,
       });
     }
 

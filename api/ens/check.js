@@ -1,5 +1,5 @@
-// API route to check ENS subname availability
-const axios = require('axios');
+// API route to check ENS subname availability using Namespace SDK
+const { createOffchainClient } = require('@thenamespace/offchain-manager');
 
 const NAMESPACE_API_KEY = process.env.NAMESPACEAPIKEY;
 const PARENT_ENS = 'zeuscc8.eth';
@@ -42,31 +42,34 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Check availability using Namespace API
-    // Note: You may need to adjust this endpoint based on Namespace API docs
-    const response = await axios.get(
-      `https://api.namespace.tech/v1/subnames/${PARENT_ENS}/${subname}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${NAMESPACE_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    // Initialize Namespace SDK client
+    const client = createOffchainClient({
+      defaultApiKey: NAMESPACE_API_KEY,
+    });
 
-    // If we get a 200 response, the subname exists (not available)
-    return res.status(200).json({ available: false });
+    // Check availability using SDK
+    const result = await client.getAvailable(PARENT_ENS, subname);
+
+    console.log('Availability check result:', result);
+
+    return res.status(200).json({
+      available: result.available
+    });
   } catch (error) {
-    // If we get a 404, the subname doesn't exist (available)
-    if (error.response && error.response.status === 404) {
+    console.error('Error checking availability:', error);
+
+    // Handle SDK-specific errors
+    if (error.name === 'SubnameAlreadyExistsError') {
+      return res.status(200).json({ available: false });
+    }
+
+    if (error.name === 'SubnameNotFoundError') {
       return res.status(200).json({ available: true });
     }
 
-    // Other errors
-    console.error('Error checking availability:', error.response?.data || error.message);
     return res.status(500).json({
       error: 'Error checking availability',
-      details: error.response?.data || error.message,
+      details: error.message,
     });
   }
 };

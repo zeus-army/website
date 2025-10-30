@@ -1,5 +1,5 @@
-// API route to get recent ENS subname registrations
-const axios = require('axios');
+// API route to get recent ENS subname registrations using Namespace SDK
+const { createOffchainClient } = require('@thenamespace/offchain-manager');
 
 const NAMESPACE_API_KEY = process.env.NAMESPACEAPIKEY;
 const PARENT_ENS = 'zeuscc8.eth';
@@ -31,46 +31,32 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Get recent subnames using Namespace API
-    const response = await axios.post(
-      'https://api.namespace.ninja/api/v1/subnames/search',
-      {
-        parentName: PARENT_ENS,
-        page: 1,
-        size: 10,
-      },
-      {
-        headers: {
-          'x-auth-token': NAMESPACE_API_KEY,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    // Initialize Namespace SDK client
+    const client = createOffchainClient({
+      defaultApiKey: NAMESPACE_API_KEY,
+    });
 
-    console.log('Recent subnames fetched successfully:', response.data);
+    // Get recent subnames using SDK
+    const result = await client.getFilteredSubnames({
+      parentName: PARENT_ENS,
+      page: 1,
+      size: 10,
+    });
+
+    console.log('Recent subnames fetched successfully:', result);
 
     return res.status(200).json({
       success: true,
-      subnames: response.data,
+      subnames: result,
     });
   } catch (error) {
-    console.error('Error fetching recent subnames:', error.response?.data || error.message);
+    console.error('Error fetching recent subnames:', error);
 
-    // Handle specific error cases
-    if (error.response) {
-      const status = error.response.status;
-      const errorData = error.response.data;
-
-      if (status === 401 || status === 403) {
-        return res.status(500).json({
-          error: 'Authentication error with Namespace API',
-          details: 'Please contact support',
-        });
-      }
-
+    // Handle SDK-specific errors
+    if (error.name === 'AuthenticationError') {
       return res.status(500).json({
-        error: 'Error fetching recent subnames',
-        details: errorData,
+        error: 'Authentication error with Namespace API',
+        details: 'Please contact support',
       });
     }
 

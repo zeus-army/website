@@ -60,19 +60,19 @@ module.exports = async (req, res) => {
 
     console.log(`Fetched ${allSubnames.length} total subnames`);
 
-    // Get the last 10 and reverse them (newest first)
-    const last10 = allSubnames.slice(-10).reverse();
+    // Get the last 9 and reverse them (newest first)
+    const last9 = allSubnames.slice(-9).reverse();
 
-    console.log('Showing last 10 reversed (newest first)');
+    console.log('Showing last 9 reversed (newest first)');
 
     // Return data in a format compatible with the frontend
     return res.status(200).json({
       success: true,
       subnames: {
-        items: last10,
+        items: last9,
         total: allSubnames.length,
         page: 1,
-        size: 10,
+        size: 9,
       },
     });
   } catch (error) {

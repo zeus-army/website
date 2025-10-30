@@ -126,7 +126,7 @@ const RecentENSRegistrations: React.FC = () => {
           const subnameList = data.subnames.items || data.subnames.data || data.subnames;
 
           if (Array.isArray(subnameList)) {
-            setSubnames(subnameList.slice(0, 10));
+            setSubnames(subnameList.slice(0, 9));
           } else {
             setSubnames([]);
           }

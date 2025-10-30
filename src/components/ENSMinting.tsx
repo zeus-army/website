@@ -439,12 +439,12 @@ const ENSMinting: React.FC = () => {
   // Handle transaction confirmation and mint
   useEffect(() => {
     const completeMint = async () => {
-      if (waitingForPayment && txSuccess && !isConfirming) {
+      if (waitingForPayment && txSuccess && !isConfirming && txHash) {
         setMessage({ type: 'success', text: 'Payment confirmed! Creating your ENS... 🎉' });
         setWaitingForPayment(false);
 
         try {
-          // Step 3: Mint via API (gas-free!)
+          // Step 3: Mint via API (gas-free!) with payment proof
           setMessage({ type: 'info', text: 'Minting your ENS subname... ✨ (Gas-free!)' });
 
           const mintResponse = await fetch('/api/ens/mint', {
@@ -455,6 +455,7 @@ const ENSMinting: React.FC = () => {
             body: JSON.stringify({
               subname,
               address,
+              txHash, // Send transaction hash for payment verification
             }),
           });
 
@@ -485,7 +486,7 @@ const ENSMinting: React.FC = () => {
     };
 
     completeMint();
-  }, [txSuccess, isConfirming, waitingForPayment, subname, address]);
+  }, [txSuccess, isConfirming, waitingForPayment, txHash, subname, address]);
 
   // Fetch ETH price
   useEffect(() => {

@@ -1,8 +1,97 @@
 // API route to mint ENS subname using Namespace SDK
 const { createOffchainClient } = require('@thenamespace/offchain-manager');
+const { createPublicClient, http } = require('viem');
+const { mainnet } = require('viem/chains');
 
 const NAMESPACE_API_KEY = process.env.NAMESPACEAPIKEY;
 const PARENT_ENS = 'zeuscc8.eth';
+const PAYMENT_ADDRESS = '0xeD85dd7540b916d909641645d96c738D9e7d0873';
+const ALCHEMY_API_KEY = process.env.ALCHEMY || '';
+const ETHEREUM_RPC_URL = ALCHEMY_API_KEY
+  ? `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`
+  : 'https://eth.llamarpc.com';
+
+// Pricing tiers in USD
+const PRICING = {
+  premium: 200,  // 1-3 characters
+  medium: 50,    // 4-9 characters
+  free: 0        // 10+ characters
+};
+
+// Calculate expected price based on subname length
+function calculateExpectedPrice(subname) {
+  const length = subname.length;
+  if (length >= 10) return PRICING.free;
+  if (length >= 4) return PRICING.medium;
+  return PRICING.premium;
+}
+
+// Verify payment transaction on blockchain
+async function verifyPayment(txHash, expectedUSD, ethPriceUSD) {
+  if (expectedUSD === 0) {
+    // Free tier, no payment needed
+    return { valid: true, reason: 'Free tier' };
+  }
+
+  if (!txHash) {
+    return { valid: false, reason: 'Payment transaction hash required for paid ENS' };
+  }
+
+  try {
+    const client = createPublicClient({
+      chain: mainnet,
+      transport: http(ETHEREUM_RPC_URL)
+    });
+
+    const tx = await client.getTransaction({ hash: txHash });
+
+    if (!tx) {
+      return { valid: false, reason: 'Transaction not found' };
+    }
+
+    // Verify transaction was confirmed
+    if (!tx.blockNumber) {
+      return { valid: false, reason: 'Transaction not yet confirmed' };
+    }
+
+    // Verify recipient is the payment address
+    if (tx.to.toLowerCase() !== PAYMENT_ADDRESS.toLowerCase()) {
+      return { valid: false, reason: `Payment must be sent to ${PAYMENT_ADDRESS}` };
+    }
+
+    // Convert value from wei to ETH
+    const valueInEth = Number(tx.value) / 1e18;
+
+    // Calculate minimum required ETH (with 5% tolerance for price fluctuation)
+    const expectedEth = expectedUSD / ethPriceUSD;
+    const minRequiredEth = expectedEth * 0.95; // 5% tolerance
+
+    if (valueInEth < minRequiredEth) {
+      return {
+        valid: false,
+        reason: `Insufficient payment. Required: ~${expectedEth.toFixed(6)} ETH, Received: ${valueInEth.toFixed(6)} ETH`
+      };
+    }
+
+    return { valid: true, reason: 'Payment verified' };
+  } catch (error) {
+    console.error('Error verifying payment:', error);
+    return { valid: false, reason: `Payment verification failed: ${error.message}` };
+  }
+}
+
+// Fetch current ETH price in USD
+async function getEthPrice() {
+  try {
+    const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
+    const data = await response.json();
+    return data.ethereum.usd;
+  } catch (error) {
+    console.error('Error fetching ETH price:', error);
+    // Fallback price if API fails
+    return 3000;
+  }
+}
 
 module.exports = async (req, res) => {
   // Set CORS headers
@@ -25,7 +114,7 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { subname, address } = req.body;
+  const { subname, address, txHash } = req.body;
 
   // Validation
   if (!subname || !address) {
@@ -48,7 +137,33 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Initialize Namespace SDK client
+    // Step 1: Calculate expected price
+    const expectedPriceUSD = calculateExpectedPrice(subname);
+    console.log(`Expected price for "${subname}" (${subname.length} chars): $${expectedPriceUSD}`);
+
+    // Step 2: Verify payment if required
+    if (expectedPriceUSD > 0) {
+      const ethPrice = await getEthPrice();
+      console.log(`Current ETH price: $${ethPrice}`);
+
+      const paymentVerification = await verifyPayment(txHash, expectedPriceUSD, ethPrice);
+
+      if (!paymentVerification.valid) {
+        console.error('Payment verification failed:', paymentVerification.reason);
+        return res.status(402).json({
+          error: 'Payment verification failed',
+          details: paymentVerification.reason,
+          expectedPrice: expectedPriceUSD,
+          txHash: txHash || 'not provided'
+        });
+      }
+
+      console.log('Payment verified:', paymentVerification.reason);
+    } else {
+      console.log('Free tier ENS, no payment required');
+    }
+
+    // Step 3: Initialize Namespace SDK client and mint
     const client = createOffchainClient({
       defaultApiKey: NAMESPACE_API_KEY,
     });

@@ -50,14 +50,23 @@ module.exports = async (req, res) => {
     const dataArray = result.data || result.items || result;
     console.log('Data array length:', Array.isArray(dataArray) ? dataArray.length : 'Not an array');
 
+    // Sort by createdAt timestamp (most recent first)
+    const sortedArray = Array.isArray(dataArray) ? [...dataArray].sort((a, b) => {
+      const dateA = a.texts?.createdAt ? new Date(a.texts.createdAt).getTime() : 0;
+      const dateB = b.texts?.createdAt ? new Date(b.texts.createdAt).getTime() : 0;
+      return dateB - dateA; // Descending order (newest first)
+    }) : dataArray;
+
+    console.log('Sorted array by createdAt');
+
     // Return data in a format compatible with the frontend
     return res.status(200).json({
       success: true,
       subnames: {
-        items: dataArray, // Handle different response structures
-        total: result.total || (Array.isArray(dataArray) ? dataArray.length : 0),
+        items: sortedArray, // Handle different response structures
+        total: result.total || (Array.isArray(sortedArray) ? sortedArray.length : 0),
         page: result.page || 1,
-        size: result.size || (Array.isArray(dataArray) ? dataArray.length : 0),
+        size: result.size || (Array.isArray(sortedArray) ? sortedArray.length : 0),
       },
     });
   } catch (error) {

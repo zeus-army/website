@@ -194,6 +194,10 @@ module.exports = async (req, res) => {
         {
           key: 'avatar',
           value: 'https://zeus.army/images/zeus-ens-avatar.png',
+        },
+        {
+          key: 'createdAt',
+          value: new Date().toISOString(),
         }
       ],
     });

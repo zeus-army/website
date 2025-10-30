@@ -400,18 +400,36 @@ const WalletConnectWrapper = styled.div`
     font-family: var(--font-body) !important;
     font-weight: 700 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.1em !important;
+    letter-spacing: 0.05em !important;
     border-radius: 60px !important;
-    padding: 1rem 2rem !important;
+    padding: 0.875rem 1.75rem !important;
     background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
     color: #000 !important;
     border: 4px solid #000 !important;
     box-shadow: 0 6px 0 #000, 0 6px 20px rgba(0, 0, 0, 0.3) !important;
     transition: all 0.3s ease !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    max-width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
 
     &:hover {
       transform: translateY(-3px) !important;
       box-shadow: 0 9px 0 #000, 0 9px 25px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    /* Style inner elements */
+    span, div {
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      line-height: 1 !important;
     }
   }
 `;
@@ -663,10 +681,6 @@ const ENSMinting: React.FC = () => {
   return (
     <MintingContainer>
       <SectionTitle>⚡ Mint Your ENS ⚡</SectionTitle>
-
-      <WalletSection>
-        <ConnectButton />
-      </WalletSection>
 
       <GasFreeNotice>
         ⚡ <strong>100% Gas-Free Minting!</strong> ⚡<br />

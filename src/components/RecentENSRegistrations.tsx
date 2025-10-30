@@ -98,6 +98,49 @@ const ErrorMessage = styled.div`
   padding: 2rem;
 `;
 
+const EarlyMessage = styled.div`
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 1.3rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+`;
+
+const CountChip = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #000;
+  padding: 0.4rem 1rem;
+  border-radius: 50px;
+  border: 3px solid rgba(255, 215, 0, 0.6);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.5),
+              inset 0 0 10px rgba(255, 255, 255, 0.3);
+  animation: pulse 2s ease-in-out infinite;
+
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.5),
+                  inset 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+    50% {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.8),
+                  inset 0 0 15px rgba(255, 255, 255, 0.5);
+    }
+  }
+`;
+
 interface Subname {
   name: string;
   label: string;
@@ -107,6 +150,7 @@ interface Subname {
 
 const RecentENSRegistrations: React.FC = () => {
   const [subnames, setSubnames] = useState<Subname[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -124,11 +168,14 @@ const RecentENSRegistrations: React.FC = () => {
           // Extract subnames from the response
           // The structure may vary, adjust based on actual API response
           const subnameList = data.subnames.items || data.subnames.data || data.subnames;
+          const total = data.subnames.total || 0;
 
           if (Array.isArray(subnameList)) {
             setSubnames(subnameList.slice(0, 9));
+            setTotalCount(total);
           } else {
             setSubnames([]);
+            setTotalCount(0);
           }
         } else {
           setError('No registrations found');
@@ -165,6 +212,9 @@ const RecentENSRegistrations: React.FC = () => {
   return (
     <Section>
       <Title>⚡ Recent Registrations ⚡</Title>
+      <EarlyMessage>
+        You are early, only <CountChip>{totalCount}</CountChip> ENS were minted
+      </EarlyMessage>
       <Grid>
         {subnames.map((subname, index) => {
           // Build full ENS name

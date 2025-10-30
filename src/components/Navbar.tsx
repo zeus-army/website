@@ -218,10 +218,9 @@ const Navbar: React.FC = () => {
         <NavLinks>
           <NavLink href="/#mission">Mission</NavLink>
           <NavLinkRouter to="/makeit">Make It</NavLinkRouter>
-          <NavLink href="/#leaderboard">Leaders</NavLink>
           <NavLinkRouter to="/holders">Holders</NavLinkRouter>
           <NavLinkRouter to="/governance">Governance</NavLinkRouter>
-          <NavLinkRouter to="/ens">Get ENS</NavLinkRouter>
+          <NavLinkRouter to="/ens">Mint ENS</NavLinkRouter>
         </NavLinks>
 
         <MobileMenu $isOpen={mobileMenuOpen} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -234,10 +233,9 @@ const Navbar: React.FC = () => {
       <MobileMenuContainer $isOpen={mobileMenuOpen}>
         <MobileNavLink href="/#mission" onClick={() => setMobileMenuOpen(false)}>Mission</MobileNavLink>
         <MobileNavLinkRouter to="/makeit" onClick={() => setMobileMenuOpen(false)}>Make It</MobileNavLinkRouter>
-        <MobileNavLink href="/#leaderboard" onClick={() => setMobileMenuOpen(false)}>Leaders</MobileNavLink>
         <MobileNavLinkRouter to="/holders" onClick={() => setMobileMenuOpen(false)}>Holders</MobileNavLinkRouter>
         <MobileNavLinkRouter to="/governance" onClick={() => setMobileMenuOpen(false)}>Governance</MobileNavLinkRouter>
-        <MobileNavLinkRouter to="/ens" onClick={() => setMobileMenuOpen(false)}>Get ENS</MobileNavLinkRouter>
+        <MobileNavLinkRouter to="/ens" onClick={() => setMobileMenuOpen(false)}>Mint ENS</MobileNavLinkRouter>
       </MobileMenuContainer>
     </Nav>
   );

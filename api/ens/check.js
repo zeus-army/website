@@ -47,8 +47,11 @@ module.exports = async (req, res) => {
       defaultApiKey: NAMESPACE_API_KEY,
     });
 
+    // Build full subname (e.g., 'alice.zeuscc8.eth')
+    const fullSubname = `${subname}.${PARENT_ENS}`;
+
     // Check availability using SDK
-    const result = await client.getAvailable(PARENT_ENS, subname);
+    const result = await client.isSubnameAvailable(fullSubname);
 
     console.log('Availability check result:', result);
 

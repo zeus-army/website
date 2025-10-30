@@ -45,9 +45,15 @@ module.exports = async (req, res) => {
 
     console.log('Recent subnames fetched successfully:', result);
 
+    // Return data in a format compatible with the frontend
     return res.status(200).json({
       success: true,
-      subnames: result,
+      subnames: {
+        items: result.data || result, // Handle different response structures
+        total: result.total,
+        page: result.page,
+        size: result.size,
+      },
     });
   } catch (error) {
     console.error('Error fetching recent subnames:', error);

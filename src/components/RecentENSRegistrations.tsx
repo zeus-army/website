@@ -33,7 +33,7 @@ const Grid = styled.div`
   }
 `;
 
-const Card = styled(motion.div)`
+const Card = styled(motion.a)`
   background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(165, 94, 234, 0.1) 100%);
   border: 2px solid rgba(255, 215, 0, 0.3);
   border-radius: 15px;
@@ -43,6 +43,8 @@ const Card = styled(motion.div)`
   gap: 1rem;
   transition: all 0.3s ease;
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+  text-decoration: none;
+  cursor: pointer;
 
   &:hover {
     transform: translateY(-5px);
@@ -167,6 +169,9 @@ const RecentENSRegistrations: React.FC = () => {
         {subnames.map((subname, index) => (
           <Card
             key={subname.name || index}
+            href={`https://app.ens.domains/${subname.name}`}
+            target="_blank"
+            rel="noopener noreferrer"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}

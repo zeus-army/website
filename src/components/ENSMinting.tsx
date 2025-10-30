@@ -457,7 +457,7 @@ const ENSMinting: React.FC = () => {
 
     if (length >= 10) {
       return { eth: 0, usd: 0 }; // FREE!
-    } else if (length >= 3) {
+    } else if (length >= 4) {
       const ethAmount = ethPrice > 0 ? 50 / ethPrice : 0.016; // $50
       return { eth: ethAmount, usd: 50 };
     } else if (length >= 1) {
@@ -573,7 +573,7 @@ const ENSMinting: React.FC = () => {
   const getPriceTier = (name: string) => {
     const length = name.length;
     if (length >= 10) return 'free';
-    if (length >= 3) return 'medium';
+    if (length >= 4) return 'medium';
     return 'premium';
   };
 
@@ -599,11 +599,11 @@ const ENSMinting: React.FC = () => {
           <strong style={{ color: '#4BB749' }}>FREE! 🎉</strong>
         </PricingItem>
         <PricingItem highlight={currentTier === 'medium'}>
-          <span>3-9 characters</span>
+          <span>4-9 characters</span>
           <strong style={{ color: '#FFD700' }}>$50 USD (≈ {ethPrice > 0 ? (50 / ethPrice).toFixed(4) : '0.016'} ETH)</strong>
         </PricingItem>
         <PricingItem highlight={currentTier === 'premium'}>
-          <span>1-2 characters (Premium)</span>
+          <span>1-3 characters (Premium)</span>
           <strong style={{ color: '#FF6B6B' }}>$200 USD (≈ {ethPrice > 0 ? (200 / ethPrice).toFixed(4) : '0.067'} ETH)</strong>
         </PricingItem>
       </PricingInfo>

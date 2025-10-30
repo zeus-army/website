@@ -166,16 +166,20 @@ const RecentENSRegistrations: React.FC = () => {
     <Section>
       <Title>⚡ Recent Registrations ⚡</Title>
       <Grid>
-        {subnames.map((subname, index) => (
-          <Card
-            key={subname.name || index}
-            href={`https://app.ens.domains/${subname.name}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
+        {subnames.map((subname, index) => {
+          // Build full ENS name
+          const fullName = subname.name || `${subname.label}.zeuscc8.eth`;
+
+          return (
+            <Card
+              key={fullName || index}
+              href={`https://app.ens.domains/${fullName}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
             <Avatar
               src={subname.avatar || '/images/zeus-avatar.jpg'}
               alt={subname.label}
@@ -188,7 +192,8 @@ const RecentENSRegistrations: React.FC = () => {
               <Subtext>.zeuscc8.eth</Subtext>
             </Info>
           </Card>
-        ))}
+        );
+        })}
       </Grid>
     </Section>
   );

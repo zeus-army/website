@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useAccount } from 'wagmi';
-import { ethers } from 'ethers';
+import { useAccount, useSendTransaction, useWaitForTransactionReceipt } from 'wagmi';
+import { parseEther } from 'viem';
 
 const PAYMENT_ADDRESS = '0xeD85dd7540b916d909641645d96c738D9e7d0873';
 const PARENT_ENS = 'zeuscc8.eth';
@@ -425,6 +425,8 @@ const LoadingSpinner = styled.div`
 
 const ENSMinting: React.FC = () => {
   const { address, isConnected } = useAccount();
+  const { sendTransaction, data: txHash, isPending: isSending } = useSendTransaction();
+  const { isLoading: isConfirming, isSuccess: txSuccess } = useWaitForTransactionReceipt({ hash: txHash });
   const [subname, setSubname] = useState('');
   const [price, setPrice] = useState<number>(0);
   const [priceUSD, setPriceUSD] = useState<number>(0);
@@ -432,6 +434,58 @@ const ENSMinting: React.FC = () => {
   const [mintedSubname, setMintedSubname] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'info' | 'success' | 'error' | 'warning', text: string } | null>(null);
   const [ethPrice, setEthPrice] = useState<number>(0);
+  const [waitingForPayment, setWaitingForPayment] = useState(false);
+
+  // Handle transaction confirmation and mint
+  useEffect(() => {
+    const completeMint = async () => {
+      if (waitingForPayment && txSuccess && !isConfirming) {
+        setMessage({ type: 'success', text: 'Payment confirmed! Creating your ENS... 🎉' });
+        setWaitingForPayment(false);
+
+        try {
+          // Step 3: Mint via API (gas-free!)
+          setMessage({ type: 'info', text: 'Minting your ENS subname... ✨ (Gas-free!)' });
+
+          const mintResponse = await fetch('/api/ens/mint', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              subname,
+              address,
+            }),
+          });
+
+          const mintData = await mintResponse.json();
+
+          if (mintData.success) {
+            setMintedSubname(`${subname}.${PARENT_ENS}`);
+            setMessage({
+              type: 'success',
+              text: `🎊 Success! ${subname}.${PARENT_ENS} is now yours!`,
+            });
+            setSubname('');
+            setPrice(0);
+            setPriceUSD(0);
+          } else {
+            throw new Error(mintData.error || 'Minting failed');
+          }
+        } catch (error: any) {
+          console.error('Error during mint process:', error);
+          setMessage({
+            type: 'error',
+            text: `Failed: ${error.message || 'Unknown error'}. Please try again.`,
+          });
+        } finally {
+          setProcessing(false);
+        }
+      }
+    };
+
+    completeMint();
+  }, [txSuccess, isConfirming, waitingForPayment, subname, address]);
 
   // Fetch ETH price
   useEffect(() => {
@@ -517,21 +571,20 @@ const ENSMinting: React.FC = () => {
       // Step 2: Send payment if needed
       if (price > 0) {
         setMessage({ type: 'info', text: 'Sending payment... Please confirm in your wallet 💰' });
-
-        const provider = new ethers.providers.Web3Provider((window as any).ethereum);
-        const signer = provider.getSigner();
+        setWaitingForPayment(true);
 
         // Convert price to string with reasonable precision (6 decimals)
         const priceString = price.toFixed(6);
 
-        const tx = await signer.sendTransaction({
+        // Send transaction using wagmi
+        sendTransaction({
           to: PAYMENT_ADDRESS,
-          value: ethers.utils.parseEther(priceString),
+          value: parseEther(priceString),
         });
 
-        setMessage({ type: 'info', text: 'Payment sent! Waiting for confirmation... ⏳' });
-        await tx.wait();
-        setMessage({ type: 'success', text: 'Payment confirmed! Creating your ENS... 🎉' });
+        // Wait for the transaction to be sent and confirmed
+        // This will be handled by the useEffect below
+        return; // Exit here, useEffect will continue the flow
       }
 
       // Step 3: Mint via API (gas-free!)

@@ -21,6 +21,7 @@ const CACHE_DURATION = 5 * 60 * 1000;
 // ENS cache for zeuscc8.eth subdomains
 let ensCache = new Map();
 let lastCacheUpdate = 0;
+let lastENSCount = 0; // Track total ENS count to detect new registrations
 const ENS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 // Minimal ERC20 ABI
@@ -229,6 +230,7 @@ async function buildENSCache() {
     }
 
     lastCacheUpdate = Date.now();
+    lastENSCount = totalSubnames; // Save the count
     console.log(`[ENS Cache] Built successfully with ${totalSubnames} subdomains from ${page - 1} pages`);
     console.log('[ENS Cache] Total entries in cache:', ensCache.size);
 
@@ -239,6 +241,38 @@ async function buildENSCache() {
     });
   } catch (error) {
     console.error('Error building ENS cache:', error);
+  }
+}
+
+// Check if new ENS have been registered since last cache
+async function hasNewENSRegistrations() {
+  if (!NAMESPACE_API_KEY) {
+    return false;
+  }
+
+  try {
+    const client = createOffchainClient({
+      defaultApiKey: NAMESPACE_API_KEY,
+    });
+
+    // Get just the first page to check total count
+    const result = await client.getFilteredSubnames({
+      parentName: PARENT_ENS,
+      page: 1,
+      size: 1
+    });
+
+    const currentTotal = result.totalItems || result.total || 0;
+
+    if (lastENSCount > 0 && currentTotal > lastENSCount) {
+      console.log(`[ENS Check] New ENS detected! Was: ${lastENSCount}, Now: ${currentTotal}`);
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('[ENS Check] Error checking for new ENS:', error);
+    return false;
   }
 }
 
@@ -556,12 +590,24 @@ async function aggregateHolders(zeusHolders, wzeusHolders, lpHolders = []) {
 async function getTop10Holders(viemClient, decimals, totalSupply, zeusPrice) {
   const kv = await getRedisClient();
 
-  // Build ENS cache first to get latest ENS data
-  await buildENSCache();
+  // Check if there are new ENS registrations
+  const newENSDetected = await hasNewENSRegistrations();
+
+  if (newENSDetected) {
+    console.log('[Cache Invalidation] New ENS detected - invalidating caches');
+    // Force rebuild ENS cache
+    lastCacheUpdate = 0;
+    await buildENSCache();
+  } else {
+    // Build ENS cache first to get latest ENS data (if needed)
+    await buildENSCache();
+  }
 
   // Include ENS cache timestamp in cache key to invalidate when ENS cache updates
   const cacheKey = `holders:top10:ens${Math.floor(lastCacheUpdate / (5 * 60 * 1000))}`;
-  const cached = await kv.get(cacheKey);
+
+  // If new ENS detected, skip cached data
+  const cached = newENSDetected ? null : await kv.get(cacheKey);
 
   if (cached) {
     // Vercel KV returns objects directly, no need to JSON.parse

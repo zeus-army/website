@@ -11,6 +11,7 @@ import HomePage from './pages/HomePage';
 import GovernancePage from './pages/GovernancePage';
 import HoldersPage from './pages/HoldersPage';
 import MakeItPage from './pages/MakeItPage';
+import ENSPage from './pages/ENSPage';
 import Footer from './components/Footer';
 
 const queryClient = new QueryClient();
@@ -65,6 +66,7 @@ function App() {
                   <Route path="/governance" element={<GovernancePage />} />
                   <Route path="/holders" element={<HoldersPage />} />
                   <Route path="/makeit" element={<MakeItPage />} />
+                  <Route path="/ens" element={<ENSPage />} />
                 </Routes>
               </main>
               <Footer />

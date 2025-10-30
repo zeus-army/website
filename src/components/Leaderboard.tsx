@@ -513,6 +513,7 @@ const Leaderboard: React.FC = () => {
                 <li>🛡️ <strong>Insider Protection:</strong> Prevents abuse of privileged information</li>
                 <li>🤝 <strong>Trust Building:</strong> Demonstrates your commitment to the project</li>
                 <li>👥 <strong>Leadership Recognition:</strong> The community knows who to follow and amplify</li>
+                <li>🏆 <strong>Custom Identity:</strong> Get an ENS (yourname.zeuscc8.eth) to appear with your nickname instead of your wallet</li>
                 <li>📊 <strong>Fair Governance:</strong> Ensures leaders act in the community's best interest</li>
               </ul>
               <p>

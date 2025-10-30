@@ -1,5 +1,6 @@
 import React from 'react';
 import Hero from '../components/Hero';
+import ENSAnnouncement from '../components/ENSAnnouncement';
 import AboutUs from '../components/AboutUs';
 import Roadmap from '../components/Roadmap';
 import Leaderboard from '../components/Leaderboard';
@@ -10,6 +11,7 @@ const HomePage: React.FC = () => {
   return (
     <>
       <Hero />
+      <ENSAnnouncement />
       <AboutUs />
       <Mission />
       <Roadmap />

@@ -36,37 +36,43 @@ module.exports = async (req, res) => {
       defaultApiKey: NAMESPACE_API_KEY,
     });
 
-    // Get recent subnames using SDK
-    const result = await client.getFilteredSubnames({
-      parentName: PARENT_ENS,
-      page: 1,
-      size: 10,
-    });
+    // Get ALL subnames from SDK (not just page 1)
+    let allSubnames = [];
+    let page = 1;
+    let hasMore = true;
 
-    console.log('Recent subnames fetched successfully:', result);
-    console.log('Result structure:', JSON.stringify(result, null, 2));
+    while (hasMore) {
+      const result = await client.getFilteredSubnames({
+        parentName: PARENT_ENS,
+        page: page,
+        size: 100,
+      });
 
-    // Extract the actual data array from the result
-    const dataArray = result.data || result.items || result;
-    console.log('Data array length:', Array.isArray(dataArray) ? dataArray.length : 'Not an array');
+      const pageData = result.data || result.items || result;
+      if (Array.isArray(pageData) && pageData.length > 0) {
+        allSubnames = allSubnames.concat(pageData);
+        hasMore = pageData.length === result.size;
+        page++;
+      } else {
+        hasMore = false;
+      }
+    }
 
-    // Sort by createdAt timestamp (most recent first)
-    const sortedArray = Array.isArray(dataArray) ? [...dataArray].sort((a, b) => {
-      const dateA = a.texts?.createdAt ? new Date(a.texts.createdAt).getTime() : 0;
-      const dateB = b.texts?.createdAt ? new Date(b.texts.createdAt).getTime() : 0;
-      return dateB - dateA; // Descending order (newest first)
-    }) : dataArray;
+    console.log(`Fetched ${allSubnames.length} total subnames`);
 
-    console.log('Sorted array by createdAt');
+    // Get the last 10 and reverse them (newest first)
+    const last10 = allSubnames.slice(-10).reverse();
+
+    console.log('Showing last 10 reversed (newest first)');
 
     // Return data in a format compatible with the frontend
     return res.status(200).json({
       success: true,
       subnames: {
-        items: sortedArray, // Handle different response structures
-        total: result.total || (Array.isArray(sortedArray) ? sortedArray.length : 0),
-        page: result.page || 1,
-        size: result.size || (Array.isArray(sortedArray) ? sortedArray.length : 0),
+        items: last10,
+        total: allSubnames.length,
+        page: 1,
+        size: 10,
       },
     });
   } catch (error) {

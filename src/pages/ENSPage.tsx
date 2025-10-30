@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import ENSMinting from '../components/ENSMinting';
+import RecentENSRegistrations from '../components/RecentENSRegistrations';
 
 const ENSPageSection = styled.section`
   min-height: 100vh;
@@ -194,6 +195,8 @@ const ENSPage: React.FC = () => {
         </IntroBox>
 
         <ENSMinting />
+
+        <RecentENSRegistrations />
       </Container>
     </ENSPageSection>
   );

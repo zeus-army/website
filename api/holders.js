@@ -175,9 +175,12 @@ async function buildENSCache() {
   }
 
   if (!NAMESPACE_API_KEY) {
-    console.warn('NAMESPACE_API_KEY not configured, skipping ENS cache build');
+    console.error('[ENS Cache] NAMESPACE_API_KEY not configured - ENS names will not be resolved');
+    console.error('[ENS Cache] Please set NAMESPACEAPIKEY environment variable in Vercel');
     return;
   }
+
+  console.log('[ENS Cache] API Key configured, length:', NAMESPACE_API_KEY.length);
 
   try {
     console.log('Building ENS cache for zeuscc8.eth subdomains...');
@@ -226,8 +229,14 @@ async function buildENSCache() {
     }
 
     lastCacheUpdate = Date.now();
-    console.log(`ENS cache built successfully with ${totalSubnames} subdomains from ${page - 1} pages`);
-    console.log('Cache contents sample:', Array.from(ensCache.entries()).slice(0, 5));
+    console.log(`[ENS Cache] Built successfully with ${totalSubnames} subdomains from ${page - 1} pages`);
+    console.log('[ENS Cache] Total entries in cache:', ensCache.size);
+
+    // Log sample entries for debugging
+    const sampleEntries = Array.from(ensCache.entries()).slice(0, 3);
+    sampleEntries.forEach(([addr, ens]) => {
+      console.log(`[ENS Cache] ${addr} -> ${ens}`);
+    });
   } catch (error) {
     console.error('Error building ENS cache:', error);
   }
@@ -239,9 +248,14 @@ async function resolveENS(address, viemClient) {
   await buildENSCache();
 
   // Check the cache for zeuscc8.eth subdomains
-  const cachedENS = ensCache.get(address.toLowerCase());
+  const normalizedAddress = address.toLowerCase();
+  const cachedENS = ensCache.get(normalizedAddress);
+
   if (cachedENS) {
+    console.log(`[ENS Resolve] Found cached ENS for ${normalizedAddress}: ${cachedENS}`);
     return cachedENS;
+  } else {
+    console.log(`[ENS Resolve] No cached ENS for ${normalizedAddress}, trying onchain...`);
   }
 
   // Fallback to onchain ENS resolution
@@ -249,6 +263,9 @@ async function resolveENS(address, viemClient) {
     const ensName = await viemClient.getEnsName({
       address: address,
     });
+    if (ensName) {
+      console.log(`[ENS Resolve] Found onchain ENS for ${normalizedAddress}: ${ensName}`);
+    }
     return ensName;
   } catch (error) {
     return null;

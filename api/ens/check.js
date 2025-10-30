@@ -56,7 +56,7 @@ module.exports = async (req, res) => {
     console.log('Availability check result:', result);
 
     return res.status(200).json({
-      available: result.available
+      available: result.isAvailable
     });
   } catch (error) {
     console.error('Error checking availability:', error);

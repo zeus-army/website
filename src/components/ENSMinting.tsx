@@ -478,7 +478,7 @@ const ENSMinting: React.FC = () => {
 
   return (
     <MintingContainer>
-      <SectionTitle>⚡ Claim Your ENS ⚡</SectionTitle>
+      <SectionTitle>⚡ Mint Your ENS ⚡</SectionTitle>
 
       <PricingInfo>
         <PricingTitle>💰 Pricing</PricingTitle>

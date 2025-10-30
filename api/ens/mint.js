@@ -141,6 +141,58 @@ module.exports = async (req, res) => {
     const expectedPriceUSD = calculateExpectedPrice(subname);
     console.log(`Expected price for "${subname}" (${subname.length} chars): $${expectedPriceUSD}`);
 
+    // Step 1.5: For free tier, check if address already has an ENS
+    if (expectedPriceUSD === 0) {
+      console.log('Checking if address already has a free ENS...');
+
+      const client = createOffchainClient({
+        defaultApiKey: NAMESPACE_API_KEY,
+      });
+
+      // Get all subnames and check if this address already has one
+      let page = 1;
+      let hasMore = true;
+      let addressHasENS = false;
+
+      while (hasMore && !addressHasENS) {
+        const result = await client.getFilteredSubnames({
+          parentName: PARENT_ENS,
+          page: page,
+          size: 100
+        });
+
+        const subnames = result.items || result.data || result || [];
+
+        for (const subname of subnames) {
+          // Check if this subname belongs to the requesting address
+          if (subname.addresses && subname.addresses['60']) {
+            const ensAddress = subname.addresses['60'].toLowerCase();
+            if (ensAddress === address.toLowerCase()) {
+              // Check if it's a free ENS (10+ characters)
+              const ensLabel = subname.label || '';
+              if (ensLabel.length >= 10) {
+                addressHasENS = true;
+                console.log(`Address ${address} already has free ENS: ${subname.fullName}`);
+                break;
+              }
+            }
+          }
+        }
+
+        hasMore = subnames.length === result.size;
+        page++;
+      }
+
+      if (addressHasENS) {
+        return res.status(403).json({
+          error: 'Address already has a free ENS',
+          details: 'Each address can only register one free ENS (10+ characters). You can purchase premium ENS (1-9 characters) if you want additional names.'
+        });
+      }
+
+      console.log('Address does not have a free ENS yet, proceeding...');
+    }
+
     // Step 2: Verify payment if required
     if (expectedPriceUSD > 0) {
       const ethPrice = await getEthPrice();

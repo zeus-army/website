@@ -471,7 +471,15 @@ const ENSMinting: React.FC = () => {
             setPrice(0);
             setPriceUSD(0);
           } else {
-            throw new Error(mintData.error || 'Minting failed');
+            // Handle specific error cases
+            if (mintResponse.status === 403) {
+              setMessage({
+                type: 'error',
+                text: '🚫 You already have a free ENS! Each address can only register one free ENS (10+ characters). Premium ENS (1-9 chars) can still be purchased.',
+              });
+            } else {
+              throw new Error(mintData.error || 'Minting failed');
+            }
           }
         } catch (error: any) {
           console.error('Error during mint process:', error);
@@ -614,7 +622,15 @@ const ENSMinting: React.FC = () => {
         setPrice(0);
         setPriceUSD(0);
       } else {
-        throw new Error(mintData.error || 'Minting failed');
+        // Handle specific error cases
+        if (mintResponse.status === 403) {
+          setMessage({
+            type: 'error',
+            text: '🚫 You already have a free ENS! Each address can only register one free ENS (10+ characters). Premium ENS (1-9 chars) can still be purchased.',
+          });
+        } else {
+          throw new Error(mintData.error || 'Minting failed');
+        }
       }
     } catch (error: any) {
       console.error('Error during mint process:', error);

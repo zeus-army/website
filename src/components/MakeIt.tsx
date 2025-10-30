@@ -637,8 +637,31 @@ const AddressLink = styled.a`
   }
 `;
 
-const ENSName = styled.span`
-  color: var(--color-primary);
+const ENSName = styled.span<{ $isZeusENS?: boolean }>`
+  ${props => props.$isZeusENS ? `
+    background: linear-gradient(
+      90deg,
+      #FF0080 0%,
+      #FF8C00 16.67%,
+      #FFD700 33.33%,
+      #00FF00 50%,
+      #00CED1 66.67%,
+      #4169E1 83.33%,
+      #8B00FF 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% auto;
+    animation: rainbow-shift 3s linear infinite;
+
+    @keyframes rainbow-shift {
+      0% { background-position: 0% center; }
+      100% { background-position: 200% center; }
+    }
+  ` : `
+    color: var(--color-primary);
+  `}
   font-weight: 700;
 `;
 
@@ -1188,19 +1211,19 @@ const MakeIt: React.FC = () => {
     if (knownName) {
       return (
         <AddressLink href={zapperUrl} target="_blank" rel="noopener noreferrer">
-          <ENSName>{knownName}</ENSName>
+          <ENSName $isZeusENS={false}>{knownName}</ENSName>
         </AddressLink>
       );
     }
 
     // Check for ENS name - only show if it's a zeuscc8.eth subdomain
     if (ensName && ensName.toLowerCase().endsWith('.zeuscc8.eth')) {
-      // Show only the nickname part
+      // Show only the nickname part with rainbow colors
       const displayName = ensName.substring(0, ensName.toLowerCase().indexOf('.zeuscc8.eth'));
 
       return (
         <AddressLink href={zapperUrl} target="_blank" rel="noopener noreferrer">
-          <ENSName>{displayName}</ENSName>
+          <ENSName $isZeusENS={true}>{displayName}</ENSName>
         </AddressLink>
       );
     }

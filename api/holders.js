@@ -45,6 +45,7 @@ const memoryStore = (() => {
   return {
     get: async (key) => store[key],
     set: async (key, value) => { store[key] = value; },
+    del: async (key) => { delete store[key]; },
     hgetall: async (key) => store[key] || {},
     hset: async (key, data) => { store[key] = { ...store[key], ...data }; },
   };
@@ -83,6 +84,7 @@ async function getRedisClient() {
       redisClient = {
         get: async (key) => await client.get(key),
         set: async (key, value) => await client.set(key, value),
+        del: async (key) => await client.del(key),
         hgetall: async (key) => await client.hGetAll(key),
         hset: async (key, data) => await client.hSet(key, data),
       };
@@ -537,8 +539,11 @@ async function aggregateHolders(zeusHolders, wzeusHolders, lpHolders = []) {
 async function getTop10Holders(viemClient, decimals, totalSupply, zeusPrice) {
   const kv = await getRedisClient();
 
-  // Check cache
-  const cacheKey = 'holders:top10';
+  // Build ENS cache first to get latest ENS data
+  await buildENSCache();
+
+  // Include ENS cache timestamp in cache key to invalidate when ENS cache updates
+  const cacheKey = `holders:top10:ens${Math.floor(lastCacheUpdate / (5 * 60 * 1000))}`;
   const cached = await kv.get(cacheKey);
 
   if (cached) {
@@ -594,6 +599,22 @@ async function getTop10Holders(viemClient, decimals, totalSupply, zeusPrice) {
     timestamp: Date.now(),
     holders: top10WithENS
   });
+
+  // Clean up old holder cache keys (keep only last 2 ENS cache periods)
+  try {
+    const currentPeriod = Math.floor(lastCacheUpdate / (5 * 60 * 1000));
+    const oldKeys = [
+      `holders:top10:ens${currentPeriod - 1}`,
+      `holders:top10:ens${currentPeriod - 2}`,
+      'holders:top10' // Old key format
+    ];
+    for (const oldKey of oldKeys) {
+      await kv.del(oldKey);
+    }
+  } catch (error) {
+    // Ignore cleanup errors
+    console.log('Error cleaning up old cache keys:', error);
+  }
 
   // Also save individual entries in Redis for future reference
   for (const holder of top10WithENS) {

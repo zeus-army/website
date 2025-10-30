@@ -204,6 +204,9 @@ const ENSPage: React.FC = () => {
             <FeatureItem>
               <strong>Special pricing</strong> - 6+ characters are FREE! 🎉
             </FeatureItem>
+            <FeatureItem>
+              <strong>Speculate & Trade</strong> - Collect the most powerful names and sell them on OpenSea! 💎 Get premium ENS before anyone else
+            </FeatureItem>
           </FeatureList>
 
           <IntroText>

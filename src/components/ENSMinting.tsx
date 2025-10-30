@@ -521,9 +521,12 @@ const ENSMinting: React.FC = () => {
         const provider = new ethers.providers.Web3Provider((window as any).ethereum);
         const signer = provider.getSigner();
 
+        // Convert price to string with reasonable precision (6 decimals)
+        const priceString = price.toFixed(6);
+
         const tx = await signer.sendTransaction({
           to: PAYMENT_ADDRESS,
-          value: ethers.utils.parseEther(price.toFixed(18)),
+          value: ethers.utils.parseEther(priceString),
         });
 
         setMessage({ type: 'info', text: 'Payment sent! Waiting for confirmation... ⏳' });
